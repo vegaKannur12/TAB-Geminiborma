@@ -168,12 +168,17 @@ class _RegistrationState extends State<Registration> {
                       height: 10,
                     ),
                     TextFormField(
+                      // maxLength: 10,
+                      inputFormatters: [LengthLimitingTextInputFormatter(10)],
                       keyboardType: TextInputType.phone,
                       controller: phone,
                       validator: (text) {
-                        if (text == null || text.isEmpty) {
+                        if (text == null || text.isEmpty) 
+                        {
                           return 'Please Enter Phone Number';
-                        } else if (text.length != 10) {
+                        } 
+                        else if (text.length != 10) 
+                        {
                           return 'Please Enter Valid Phone No ';
                         }
                         return null;

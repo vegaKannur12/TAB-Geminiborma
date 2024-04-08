@@ -10,6 +10,7 @@ import 'package:jeminiborma/db_helper.dart';
 import 'package:jeminiborma/model/customer_model.dart';
 import 'package:jeminiborma/model/registration_model.dart';
 import 'package:jeminiborma/screen/authentication/login.dart';
+import 'package:jeminiborma/screen/db_selection.dart';
 import 'package:jeminiborma/screen/home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sql_conn/sql_conn.dart';
@@ -65,7 +66,7 @@ class Controller extends ChangeNotifier {
 
   String? appType;
   bool isdbLoading = true;
-
+   bool isYearSelectLoading = false;
   // List<Map<String, dynamic>> filteredList = [];
   var result1 = <String, List<Map<String, dynamic>>>{};
   var resultList = <String, List<Map<String, dynamic>>>{};
@@ -77,6 +78,7 @@ class Controller extends ChangeNotifier {
   String param = "";
   List<bool> isAdded = [];
   bool isLoginLoading = false;
+  List<Map<String, dynamic>> db_list = [];
   /////////////////////////////////////////////
   Future<RegistrationData?> postRegistration(
       String companyCode,
@@ -166,9 +168,21 @@ class Controller extends ChangeNotifier {
                 prefs.setString("usern", map["mssql_arr"][0]["username"]);
                 prefs.setString("pass_w", map["mssql_arr"][0]["password"]);
                 prefs.setString("multi_db", map["mssql_arr"][0]["multi_db"]);
-                await JeminiBorma.instance.deleteFromTableCommonQuery(
-                    "companyRegistrationTable",
-                    ""); // ignore: use_build_context_synchronously
+                await JeminiBorma.instance
+                    .deleteFromTableCommonQuery("companyRegistrationTable", "");
+                // ignore: use_build_context_synchronously
+                String? m_db = prefs.getString("multi_db");
+                if (m_db == 1) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => LoginPage()),
+                  );
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => DBSelection()),
+                  );
+                }
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => LoginPage()),
@@ -183,14 +197,14 @@ class Controller extends ChangeNotifier {
             }
           }
           /////////////////////////////////////////////////////
-          if (sof == "0") {
+          if (sof == "0") 
+          {
             isLoading = false;
             notifyListeners();
             CustomSnackbar snackbar = CustomSnackbar();
             // ignore: use_build_context_synchronously
             snackbar.showSnackbar(context, msg.toString(), "");
           }
-
           notifyListeners();
         } catch (e) {
           // ignore: avoid_print
@@ -200,6 +214,123 @@ class Controller extends ChangeNotifier {
       }
     });
     return null;
+  }
+/////////////////////////////////////////////////////////////////////////////
+  initYearsDb(
+    BuildContext context,
+    String type,
+  ) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? ip = prefs.getString("ip");
+    String? port = prefs.getString("port");
+    String? un = prefs.getString("usern");
+    String? pw = prefs.getString("pass_w");
+    String? db = prefs.getString("db_name");
+    String? multi_db = prefs.getString("multi_db");
+
+    debugPrint("Connecting selected DB...$db----");
+    try {
+      isYearSelectLoading = true;
+      notifyListeners();
+      // await SqlConn.disconnect();
+      showDialog(
+        context: context,
+        builder: (context) {
+          // Navigator.push(
+          //   context,
+          //   new MaterialPageRoute(builder: (context) => HomePage()),
+          // );
+          // Future.delayed(Duration(seconds: 5), () {
+          //   Navigator.of(mycontxt).pop(true);
+          // });
+          return AlertDialog(
+            title: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Please wait",
+                  style: TextStyle(fontSize: 13),
+                ),
+                SpinKitCircle(
+                  color: Colors.green,
+                )
+              ],
+            ),
+          );
+        },
+      );
+      if (multi_db == "1") {
+        await SqlConn.connect(
+          ip: ip!,
+          port: port!,
+          databaseName: db!,
+          username: un!,
+          password: pw!,
+          timeout: 10,
+        );
+        //  Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => LoginPage()),
+        // );
+      }
+      debugPrint("Connected selected DB!----$ip------$db");
+      // getDatabasename(context, type);
+      CustomSnackbar snackbar = CustomSnackbar();
+      snackbar.showSnackbar(context, "Connected successfully..", "");
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      // yr = prefs.getString("yr_name");
+      // dbn = prefs.getString("db_name");
+      cname = prefs.getString("cname");
+      isYearSelectLoading = false;
+      notifyListeners();
+      // prefs.setString("db_name", dbn.toString());
+      // prefs.setString("yr_name", yrnam.toString());
+      // getDbName();
+      // getBranches(context);
+    } catch (e) {
+      debugPrint(e.toString());
+    } finally {
+      Navigator.pop(context);
+    }
+  }
+  ////////////////////////////////////////////////////////
+  getDatabasename(BuildContext context, String type) async {
+    isdbLoading = true;
+    db_list.clear();
+    notifyListeners();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? db = prefs.getString("db_name");
+    String? cid = await prefs.getString("cid");
+    print("cid dbname---------$cid---$db");
+    var res = await SqlConn.readData("Flt_LoadYears '$db','$cid'");
+    var map = jsonDecode(res);
+
+    if (map != null) {
+      for (var item in map) {
+        db_list.add(item);
+      }
+    }
+    notifyListeners();
+    print("years res-$res");
+    print("tyyyyyyyyyp--------$type");
+    isdbLoading = false;
+    notifyListeners();
+
+    // if (db_list.length > 1) {
+    //   if (type == "from login") {
+    //     await SqlConn.disconnect();
+    //     print("disconnected--------$db");
+    //     Navigator.push(
+    //       context,
+    //       MaterialPageRoute(builder: (context) => DBSelection()),
+    //     );
+    //   }
+    // } else {
+    //   Navigator.push(
+    //     context,
+    //     MaterialPageRoute(builder: (context) => LoginPage()),
+    //   );
+    // } test
   }
 
   //////////////////////////////////////////////////////////

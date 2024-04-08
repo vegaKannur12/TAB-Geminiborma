@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jeminiborma/controller/controller.dart';
 import 'package:jeminiborma/screen/authentication/login.dart';
 import 'package:jeminiborma/screen/authentication/registration.dart';
+import 'package:jeminiborma/screen/db_selection.dart';
 import 'package:jeminiborma/screen/home_page.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -55,25 +56,16 @@ class _SplashScreenState extends State<SplashScreen> {
           PageRouteBuilder(
               opaque: false, // set to false
               pageBuilder: (_, __, ___) {
-                if (isRegistered) {
-                  if (isLoggedIn) {
-                    // WidgetsBinding.instance.addPostFrameCallback((_) {
-                    //   Provider.of<Controller>(context, listen: false)
-                    //       .initDb(context, "");
-                    //   Provider.of<Controller>(context, listen: false)
-                    //       .getCategoryList(context);
-                    //   Provider.of<Controller>(context, listen: false)
-                    //       .getCustomerList(context);
-                    // });
-                    return HomePage();
-                  } else 
-                  {
-                    return LoginPage();
-                  }
-                } else {
+                if (isRegistered) 
+                {
+                  return DBSelection();
+                } 
+                else 
+                {
                   return Registration();
                 }
-              }));
+              })
+              );
     });
   }
 

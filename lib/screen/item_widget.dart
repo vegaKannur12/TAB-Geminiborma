@@ -27,7 +27,7 @@ class _ItemWidgetState extends State<ItemWidget> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-
+    Orientation ori=MediaQuery.of(context).orientation;
     return Consumer<Controller>(
       builder: (context, value, child) => Expanded(
         child: widget.list.length == 0
@@ -38,11 +38,13 @@ class _ItemWidgetState extends State<ItemWidget> {
                 "assets/noitem.json",
                 height: size.height * 0.34,
               )))
-            : ListView.builder(
-                shrinkWrap: true,
-                itemCount: widget.list.length,
-                itemBuilder: (context, index) {
-                  return Padding(
+            : GridView.count(
+              crossAxisCount: ori==Orientation.portrait?1:2,
+              childAspectRatio: ori==Orientation.portrait?4:3.5,
+              shrinkWrap: true,
+              children: 
+              List.generate(widget.list.length, (index){
+               return Padding(
                     padding: const EdgeInsets.only(left: 2.0, right: 2),
                     child: Card(
                       elevation: 3,
@@ -197,7 +199,7 @@ class _ItemWidgetState extends State<ItemWidget> {
                                       InkWell(
                                           onTap: () {
                                             value.response[index] = 0;
-
+                                   
                                             Provider.of<Controller>(context,
                                                     listen: false)
                                                 .setQty(1.0, index, "dec");
@@ -284,7 +286,8 @@ class _ItemWidgetState extends State<ItemWidget> {
                       ),
                     ),
                   );
-                }),
+              })
+            ,)
       ),
     );
   }
