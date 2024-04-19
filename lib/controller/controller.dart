@@ -66,7 +66,7 @@ class Controller extends ChangeNotifier {
 
   String? appType;
   bool isdbLoading = true;
-   bool isYearSelectLoading = false;
+  bool isYearSelectLoading = false;
   // List<Map<String, dynamic>> filteredList = [];
   var result1 = <String, List<Map<String, dynamic>>>{};
   var resultList = <String, List<Map<String, dynamic>>>{};
@@ -113,6 +113,7 @@ class Controller extends ChangeNotifier {
           );
           // print("body $body");
           var map = jsonDecode(response.body);
+
           // ignore: avoid_print
           print("regsiter map----$map");
           RegistrationData regModel = RegistrationData.fromJson(map);
@@ -172,10 +173,11 @@ class Controller extends ChangeNotifier {
                     .deleteFromTableCommonQuery("companyRegistrationTable", "");
                 // ignore: use_build_context_synchronously
                 String? m_db = prefs.getString("multi_db");
-                if (m_db == 1) {
+                // String? m_db = "1";
+                if (m_db != "1") {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => LoginPage()),
+                    MaterialPageRoute(builder: (context) => LoginPage()), //m_db=0
                   );
                 } else {
                   Navigator.push(
@@ -183,10 +185,10 @@ class Controller extends ChangeNotifier {
                     MaterialPageRoute(builder: (context) => DBSelection()),
                   );
                 }
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => LoginPage()),
-                );
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(builder: (context) => LoginPage()),
+                // );
               }
             } else {
               isLoading = false;
@@ -197,8 +199,7 @@ class Controller extends ChangeNotifier {
             }
           }
           /////////////////////////////////////////////////////
-          if (sof == "0") 
-          {
+          if (sof == "0") {
             isLoading = false;
             notifyListeners();
             CustomSnackbar snackbar = CustomSnackbar();
@@ -215,6 +216,7 @@ class Controller extends ChangeNotifier {
     });
     return null;
   }
+
 /////////////////////////////////////////////////////////////////////////////
   initYearsDb(
     BuildContext context,
@@ -293,6 +295,7 @@ class Controller extends ChangeNotifier {
       Navigator.pop(context);
     }
   }
+
   ////////////////////////////////////////////////////////
   getDatabasename(BuildContext context, String type) async {
     isdbLoading = true;
@@ -301,7 +304,9 @@ class Controller extends ChangeNotifier {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? db = prefs.getString("db_name");
     String? cid = await prefs.getString("cid");
+    await initDb(context, "");
     print("cid dbname---------$cid---$db");
+
     var res = await SqlConn.readData("Flt_LoadYears '$db','$cid'");
     var map = jsonDecode(res);
 
@@ -339,7 +344,8 @@ class Controller extends ChangeNotifier {
       isLoginLoading = true;
       notifyListeners();
       SharedPreferences prefs = await SharedPreferences.getInstance();
-
+      String? m_db =prefs.getString("multi_db");
+      
       if (userName.toLowerCase() != "vega" ||
           password.toLowerCase() != "vega") {
         CustomSnackbar snackbar = CustomSnackbar();
@@ -348,10 +354,12 @@ class Controller extends ChangeNotifier {
         isLoginLoading = false;
         notifyListeners();
       } else {
+        
+        // await initDb(context, "from login");
         prefs.setString("st_uname", userName);
         prefs.setString("st_pwd", password);
         // ignore: use_build_context_synchronously
-        initDb(context, "from login");
+       
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => HomePage()),
@@ -360,9 +368,41 @@ class Controller extends ChangeNotifier {
       isLoginLoading = false;
       notifyListeners();
     } catch (e) {
-      // ignore: avoid_print
-      print(e);
-      return null;
+      print("An unexpected error occurred: $e");
+      SqlConn.disconnect();
+    } finally {
+      if (SqlConn.isConnected == false) {
+        print("hi");
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Not Connected.!",
+                    style: TextStyle(fontSize: 13),
+                  ),
+                  SpinKitCircle(
+                    color: Colors.green,
+                  )
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    await initYearsDb(context, "");
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Connect'),
+                ),
+              ],
+            );
+          },
+        );
+        debugPrint("Database not connected, popping context.");
+      }
     }
   }
 
@@ -374,7 +414,7 @@ class Controller extends ChangeNotifier {
     String? port = prefs.getString("port");
     String? un = prefs.getString("usern");
     String? pw = prefs.getString("pass_w");
-    debugPrint("Connecting...");
+    debugPrint("Connecting...initDB..$db");
     try {
       showDialog(
         context: context,
@@ -447,19 +487,61 @@ class Controller extends ChangeNotifier {
     // notifyListeners();
 
     print("dndndn------$filter");
-    var res = await SqlConn.readData("Flt_Sp_Get_Customer '$filter'");
-    // ignore: avoid_print
-    print("customer list-----------$res");
-    var valueMap = json.decode(res);
-    customerList.clear();
-    if (valueMap != null) {
-      for (var item in valueMap) {
-        // customerList.add(item);
-        list.add(CustomerModel.fromJson(item));
+    try {
+      var res = await SqlConn.readData("Flt_Sp_Get_Customer '$filter'");
+      // ignore: avoid_print
+      print("customer list-----------$res");
+      var valueMap = json.decode(res);
+      customerList.clear();
+      if (valueMap != null) {
+        for (var item in valueMap) {
+          // customerList.add(item);
+          list.add(CustomerModel.fromJson(item));
+        }
+        return list;
       }
-      return list;
+      return [];
+    } catch (e) {
+      print("An unexpected error occurred: $e");
+      SqlConn.disconnect();
+      return [];
+      // Handle other types of exceptions
+    } finally {
+      if (SqlConn.isConnected) {
+        debugPrint("Database connected, not popping context.");
+      } else {
+        // If not connected, pop context to dismiss the dialog
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Not Connected.!",
+                    style: TextStyle(fontSize: 13),
+                  ),
+                  SpinKitCircle(
+                    color: Colors.green,
+                  )
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    await initYearsDb(context, "");
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Connect'),
+                ),
+              ],
+            );
+          },
+        );
+        debugPrint("Database not connected, popping context.");
+      }
     }
-    return [];
   }
 
   /////////////////////////////////////////////////
@@ -470,24 +552,71 @@ class Controller extends ChangeNotifier {
     // String? cid = await prefs.getString("cid");
     // String? db = prefs.getString("db_name");
     // String? brId = await prefs.getString("br_id");
-    param = "";
-    isLoading = true;
+    try {
+      param = "";
+      isLoading = true;
 
-    var res = await SqlConn.readData("Flt_Sp_Get_Category");
-    var valueMap = json.decode(res);
+      var res = await SqlConn.readData("Flt_Sp_Get_Category");
+      var valueMap = json.decode(res);
 
-    // ignore: avoid_print
-    print("category list----------$valueMap");
-    categoryList.clear();
-    if (valueMap != null) {
-      for (var item in valueMap) {
-        categoryList.add(item);
+      // ignore: avoid_print
+      print("category list----------$valueMap");
+      categoryList.clear();
+      if (valueMap != null) {
+        for (var item in valueMap) {
+          categoryList.add(item);
+        }
+      }
+
+      isLoading = false;
+
+      notifyListeners();
+    } catch (e) {
+      print("An unexpected error occurred: $e");
+      SqlConn.disconnect();
+      // Handle other types of exceptions
+    } finally {
+      if (SqlConn.isConnected) {
+        // If connected, do not pop context as it may dismiss the error dialog
+        // Navigator.pop(context);
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => MainHome()),
+        // );
+        debugPrint("Database connected, not popping context.");
+      } else {
+        // If not connected, pop context to dismiss the dialog
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Not Connected.!",
+                    style: TextStyle(fontSize: 13),
+                  ),
+                  SpinKitCircle(
+                    color: Colors.green,
+                  )
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    await initYearsDb(context, "");
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Connect'),
+                ),
+              ],
+            );
+          },
+        );
+        debugPrint("Database not connected, popping context.");
       }
     }
-
-    isLoading = false;
-
-    notifyListeners();
   }
 
   /////////////////////////////////////////////////
@@ -499,29 +628,76 @@ class Controller extends ChangeNotifier {
     String? os = await prefs.getString("os");
     int? cartid = await prefs.getInt("cartId");
     print("catttt iidd----$catId---$cartid----$os");
-    isLoading = true;
-    notifyListeners();
-    var res =
-        await SqlConn.readData("Flt_Sp_ItemList '$catId','$cartid','$os'");
-    var valueMap = json.decode(res);
-    print("item list----------$valueMap");
-    itemList.clear();
-    if (valueMap != null) {
-      for (var item in valueMap) {
-        itemList.add(item);
+    try {
+      isLoading = true;
+      notifyListeners();
+      var res =
+          await SqlConn.readData("Flt_Sp_ItemList '$catId','$cartid','$os'");
+      var valueMap = json.decode(res);
+      print("item list----------$valueMap");
+      itemList.clear();
+      if (valueMap != null) {
+        for (var item in valueMap) {
+          itemList.add(item);
+        }
+      }
+      isSearch = false;
+      notifyListeners();
+      qty = List.generate(itemList.length, (index) => TextEditingController());
+      isAdded = List.generate(itemList.length, (index) => false);
+      response = List.generate(itemList.length, (index) => 0);
+      for (int i = 0; i < itemList.length; i++) {
+        qty[i].text = "1.0";
+        response[i] = 0;
+      }
+      isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      print("An unexpected error occurred: $e");
+      SqlConn.disconnect();
+      // Handle other types of exceptions
+    } finally {
+      if (SqlConn.isConnected) {
+        // If connected, do not pop context as it may dismiss the error dialog
+        // Navigator.pop(context);
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => MainHome()),
+        // );
+        debugPrint("Database connected, not popping context.");
+      } else {
+        // If not connected, pop context to dismiss the dialog
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Not Connected.!",
+                    style: TextStyle(fontSize: 13),
+                  ),
+                  SpinKitCircle(
+                    color: Colors.green,
+                  )
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    await initYearsDb(context, "");
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Connect'),
+                ),
+              ],
+            );
+          },
+        );
+        debugPrint("Database not connected, popping context.");
       }
     }
-    isSearch = false;
-    notifyListeners();
-    qty = List.generate(itemList.length, (index) => TextEditingController());
-    isAdded = List.generate(itemList.length, (index) => false);
-    response = List.generate(itemList.length, (index) => 0);
-    for (int i = 0; i < itemList.length; i++) {
-      qty[i].text = "1.0";
-      response[i] = 0;
-    }
-    isLoading = false;
-    notifyListeners();
   }
 
   ///////////////////////////////////////////////////////
@@ -586,23 +762,69 @@ class Controller extends ChangeNotifier {
     // String? db = prefs.getString("db_name");
     // String? brId = await prefs.getString("br_id");
     String? os = await prefs.getString("os");
+    try {
+      var res = await SqlConn.readData("Flt_Sp_GetCartno '$os'");
+      // ignore: avoid_print
+      print("cart no------$res");
+      var valueMap = json.decode(res);
 
-    var res = await SqlConn.readData("Flt_Sp_GetCartno '$os'");
-    // ignore: avoid_print
-    print("cart no------$res");
-    var valueMap = json.decode(res);
+      // cartId = valueMap[0]["CartId"];
+      prefs.setInt("cartId", valueMap[0]["CartId"]);
+      notifyListeners();
+      // customerList.clear();
+      // if (valueMap != null) {
+      //   for (var item in valueMap) {
+      //     customerList.add(item);
+      //   }
+      // }
 
-    // cartId = valueMap[0]["CartId"];
-    prefs.setInt("cartId", valueMap[0]["CartId"]);
-    notifyListeners();
-    // customerList.clear();
-    // if (valueMap != null) {
-    //   for (var item in valueMap) {
-    //     customerList.add(item);
-    //   }
-    // }
-
-    notifyListeners();
+      notifyListeners();
+    } catch (e) {
+      print("An unexpected error occurred: $e");
+      SqlConn.disconnect();
+      // Handle other types of exceptions
+    } finally {
+      if (SqlConn.isConnected) {
+        // If connected, do not pop context as it may dismiss the error dialog
+        // Navigator.pop(context);
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => MainHome()),
+        // );
+        debugPrint("Database connected, not popping context.");
+      } else {
+        // If not connected, pop context to dismiss the dialog
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Not Connected.!",
+                    style: TextStyle(fontSize: 13),
+                  ),
+                  SpinKitCircle(
+                    color: Colors.green,
+                  )
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    await initYearsDb(context, "");
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Connect'),
+                ),
+              ],
+            );
+          },
+        );
+        debugPrint("Database not connected, popping context.");
+      }
+    }
   }
 
   ///////////////////////////////////////////////
@@ -622,26 +844,73 @@ class Controller extends ChangeNotifier {
     // String? brId = await prefs.getString("br_id");
     String? os = await prefs.getString("os");
     int? cartid = await prefs.getInt("cartId");
-    isAdded[index] = true;
-    notifyListeners();
-    print("stattuss----$status");
-    var res;
-    notifyListeners();
-    if (type == "from cart") {
-      res = await SqlConn.readData(
-          "Flt_Update_Cart $cartid,'$dateTime','${map["Cart_Cust_ID"]}',0,'$os','${map["Cart_Batch"]}',$qty,${map["Cart_Rate"]},${map["Cart_Pid"]},'${map["Cart_Unit"]}','${map["Pkg"]}',$status");
-    } else if (type == "from itempage") {
-      res = await SqlConn.readData(
-          "Flt_Update_Cart $cartid,'$dateTime','$customId',0,'$os','${map["code"]}',$qty,${map["Srate"]},${map["ProdId"]},'${map["Unit"]}','${map["Pkg"]}',$status");
-      getItemList(context, category_id);
-    }
+    try {
+      isAdded[index] = true;
+      notifyListeners();
+      print("stattuss----$status");
+      var res;
+      notifyListeners();
+      if (type == "from cart") {
+        res = await SqlConn.readData(
+            "Flt_Update_Cart $cartid,'$dateTime','${map["Cart_Cust_ID"]}',c','${map["Cart_Batch"]}',$qty,${map["Cart_Rate"]},${map["Cart_Pid"]},'${map["Cart_Unit"]}','${map["Pkg"]}',$status");
+      } else if (type == "from itempage") {
+        res = await SqlConn.readData(
+            "Flt_Update_Cart $cartid,'$dateTime','$customId',0,'$os','${map["code"]}',$qty,${map["Srate"]},${map["ProdId"]},'${map["Unit"]}','${map["Pkg"]}',$status");
+        getItemList(context, category_id);
+      }
 
-    // ignore: avoid_print
-    print("insert cart---$res");
-    var valueMap = json.decode(res);
-    response[index] = valueMap[0]["Result"];
-    isAdded[index] = false;
-    notifyListeners();
+      // ignore: avoid_print
+      print("insert cart---$res");
+      var valueMap = json.decode(res);
+      response[index] = valueMap[0]["Result"];
+      isAdded[index] = false;
+      notifyListeners();
+    } catch (e) {
+      print("An unexpected error occurred: $e");
+      SqlConn.disconnect();
+      // Handle other types of exceptions
+    } finally {
+      if (SqlConn.isConnected) {
+        // If connected, do not pop context as it may dismiss the error dialog
+        // Navigator.pop(context);
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => MainHome()),
+        // );
+        debugPrint("Database connected, not popping context.");
+      } else {
+        // If not connected, pop context to dismiss the dialog
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Not Connected.!",
+                    style: TextStyle(fontSize: 13),
+                  ),
+                  SpinKitCircle(
+                    color: Colors.green,
+                  )
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    await initYearsDb(context, "");
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Connect'),
+                ),
+              ],
+            );
+          },
+        );
+        debugPrint("Database not connected, popping context.");
+      }
+    }
   }
 
   ///////////////////////////////////////////////////////
@@ -655,33 +924,79 @@ class Controller extends ChangeNotifier {
     // String? brId = await prefs.getString("br_id");
     String? os = await prefs.getString("os");
     int? cartid = await prefs.getInt("cartId");
+    try {
+      isCartLoading = true;
+      notifyListeners();
 
-    isCartLoading = true;
-    notifyListeners();
+      print("jbjhbvbv -------------$os--$cartid ---- $customerId---");
+      var res = await SqlConn.readData(
+          "Flt_Sp_Get_Unsaved_Cart $cartid,'$customerId','$os'");
+      var valueMap = json.decode(res);
+      isCartLoading = false;
+      notifyListeners();
+      print("view cart---$res");
 
-    print("jbjhbvbv -------------$os--$cartid ---- $customerId---");
-    var res = await SqlConn.readData(
-        "Flt_Sp_Get_Unsaved_Cart $cartid,'$customerId','$os'");
-    var valueMap = json.decode(res);
-    isCartLoading = false;
-    notifyListeners();
-    print("view cart---$res");
+      cartItems.clear();
+      for (var item in valueMap) {
+        cartItems.add(item);
+      }
+      cartCount = cartItems.length;
+      notifyListeners();
+      qty = List.generate(cartItems.length, (index) => TextEditingController());
+      notifyListeners();
+      sum = 0.0;
+      for (int i = 0; i < cartItems.length; i++) {
+        qty[i].text = cartItems[i]["Cart_Qty"].toString();
+        sum = sum + cartItems[i]["It_Total"];
+      }
 
-    cartItems.clear();
-    for (var item in valueMap) {
-      cartItems.add(item);
+      notifyListeners();
+    } catch (e) {
+      print("An unexpected error occurred: $e");
+      SqlConn.disconnect();
+      // Handle other types of exceptions
+    } finally {
+      if (SqlConn.isConnected) {
+        // If connected, do not pop context as it may dismiss the error dialog
+        // Navigator.pop(context);
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => MainHome()),
+        // );
+        debugPrint("Database connected, not popping context.");
+      } else {
+        // If not connected, pop context to dismiss the dialog
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Not Connected.!",
+                    style: TextStyle(fontSize: 13),
+                  ),
+                  SpinKitCircle(
+                    color: Colors.green,
+                  )
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    await initYearsDb(context, "");
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Connect'),
+                ),
+              ],
+            );
+          },
+        );
+        debugPrint("Database not connected, popping context.");
+      }
     }
-    cartCount = cartItems.length;
-    notifyListeners();
-    qty = List.generate(cartItems.length, (index) => TextEditingController());
-    notifyListeners();
-    sum = 0.0;
-    for (int i = 0; i < cartItems.length; i++) {
-      qty[i].text = cartItems[i]["Cart_Qty"].toString();
-      sum = sum + cartItems[i]["It_Total"];
-    }
-
-    notifyListeners();
   }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -722,41 +1037,83 @@ class Controller extends ChangeNotifier {
 
   /////////////////////////////////////////////////////////////////////
   saveOrder(BuildContext context, String date, double total, int count) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    // String? cid = await prefs.getString("cid");
-    // String? db = prefs.getString("db_name");
-    // String? brId = await prefs.getString("br_id");
-    String? os = await prefs.getString("os");
-    int? cartid = await prefs.getInt("cartId");
+    // try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      // String? cid = await prefs.getString("cid");
+      // String? db = prefs.getString("db_name");
+      // String? brId = await prefs.getString("br_id");
+      String? os = await prefs.getString("os");
+      int? cartid = await prefs.getInt("cartId");
 
-    print("djgd----$os---$cartid---$customerId---$date---$total---$count");
-    notifyListeners();
-    var res = await SqlConn.readData(
-        "Flt_Sp_Save_Order  $cartid,'$date','$customerId','$os',$total,$count");
-    // ignore: avoid_print
-    print("save order------$res");
-    var valueMap = json.decode(res);
-    // String val = valueMap[0]["Orderno"];
-    if (valueMap[0]["Save_Status"] == "Success") {
-      Fluttertoast.showToast(
-          msg: "Order Saved as Order No : ${valueMap[0]["Orderno"]}",
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.CENTER,
-          timeInSecForIosWeb: 2,
-          backgroundColor: Colors.green,
-          textColor: Colors.white,
-          fontSize: 18.0);
-      isfreez = false;
-      // viewCart(context, customerId.toString());
-      selected = null;
-      customerId = null;
-      viewCart(context, customerId.toString());
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => HomePage()),
-      );
-    }
-    notifyListeners();
+      print("djgd----$os---$cartid---$customerId---$date---$total---$count");
+      notifyListeners();
+
+      var res = await SqlConn.readData(
+          "Flt_Sp_Save_Order  $cartid,'$date','$customerId','$os',$total,$count");
+      // ignore: avoid_print
+      print("save order------$res");
+      var valueMap = json.decode(res);
+      // String val = valueMap[0]["Orderno"];
+      if (valueMap[0]["Save_Status"] == "Success") {
+        Fluttertoast.showToast(
+            msg: "Order Saved as Order No : ${valueMap[0]["Orderno"]}",
+            toastLength: Toast.LENGTH_LONG,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 2,
+            backgroundColor: Colors.green,
+            textColor: Colors.white,
+            fontSize: 18.0);
+        isfreez = false;
+        // viewCart(context, customerId.toString());
+        selected = null;
+        customerId = null;
+        viewCart(context, customerId.toString());
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => HomePage()),
+        );
+      }
+      notifyListeners();
+    // } catch (e) {
+    //   print("An unexpected error occurred: $e");
+    //   SqlConn.disconnect();
+    //   // Handle other types of exceptions
+    // } finally {
+    //   if (SqlConn.isConnected) {
+    //     debugPrint("Database connected, not popping context.");
+    //   } else {
+    //     // If not connected, pop context to dismiss the dialog
+    //     showDialog(
+    //       context: context,
+    //       builder: (context) {
+    //         return AlertDialog(
+    //           title: Row(
+    //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //             children: [
+    //               Text(
+    //                 "Not Connected.!",
+    //                 style: TextStyle(fontSize: 13),
+    //               ),
+    //               SpinKitCircle(
+    //                 color: Colors.green,
+    //               )
+    //             ],
+    //           ),
+    //           actions: [
+    //             TextButton(
+    //               onPressed: () async {
+    //                 await initYearsDb(context, "");
+    //                 Navigator.of(context).pop();
+    //               },
+    //               child: Text('Connect'),
+    //             ),
+    //           ],
+    //         );
+    //       },
+    //     );
+    //     debugPrint("Database not connected, popping context.");
+    //   }
+    // }
   }
 
   /////////////////////////////////////////////////////////////////////
@@ -769,52 +1126,144 @@ class Controller extends ChangeNotifier {
   }
 
   ///////////////////////////////////////////////////////////////////
-  getorderList(String date) async {
+  getorderList(String date, BuildContext context) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     // String? cid = await prefs.getString("cid");
     // String? db = prefs.getString("db_name");
     // String? brId = await prefs.getString("br_id");
     String? os = await prefs.getString("os");
     int? cartid = await prefs.getInt("cartId");
-    isOrderLoading = true;
-    notifyListeners();
-    print("djgd----$os--");
-    notifyListeners();
-    var res = await SqlConn.readData("Flt_Get_Order_List  '$os','$date'");
-    // ignore: avoid_print
-    var valueMap = json.decode(res);
-    print("order list-----$valueMap");
-    orderlist.clear();
-    for (var item in valueMap) {
-      orderlist.add(item);
+    try {
+      isOrderLoading = true;
+      notifyListeners();
+      print("djgd----$os--");
+      notifyListeners();
+      var res = await SqlConn.readData("Flt_Get_Order_List  '$os','$date'");
+      // ignore: avoid_print
+      var valueMap = json.decode(res);
+      print("order list-----$valueMap");
+      orderlist.clear();
+      for (var item in valueMap) {
+        orderlist.add(item);
+      }
+      isOrderLoading = false;
+      // notifyListeners();
+      notifyListeners();
+    } catch (e) {
+      print("An unexpected error occurred: $e");
+      SqlConn.disconnect();
+      // Handle other types of exceptions
+    } finally {
+      if (SqlConn.isConnected) {
+        debugPrint("Database connected, not popping context.");
+      } else {
+        // If not connected, pop context to dismiss the dialog
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Not Connected.!",
+                    style: TextStyle(fontSize: 13),
+                  ),
+                  SpinKitCircle(
+                    color: Colors.green,
+                  )
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    await initYearsDb(context, "");
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Connect'),
+                ),
+              ],
+            );
+          },
+        );
+        debugPrint("Database not connected, popping context.");
+      }
     }
-    isOrderLoading = false;
-    // notifyListeners();
-    notifyListeners();
   }
 
   ///////////////////////////////////////////////////////
-  getorderDetails(String ordNo) async {
+  getorderDetails(String ordNo, BuildContext context) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     // String? cid = await prefs.getString("cid");
     // String? db = prefs.getString("db_name");
     // String? brId = await prefs.getString("br_id");
     String? os = await prefs.getString("os");
     int? cartid = await prefs.getInt("cartId");
-    isOrderLoading = true;
-    notifyListeners();
-    print("djgd----$os--");
-    notifyListeners();
-    var res = await SqlConn.readData("Flt_Get_Order_Details  '$os','$ordNo'");
-    // ignore: avoid_print
-    var valueMap = json.decode(res);
-    print("order details-----$valueMap");
-    orderDetails.clear();
-    for (var item in valueMap) {
-      orderDetails.add(item);
+    try {
+      isOrderLoading = true;
+      notifyListeners();
+      print("djgd----$os--");
+      notifyListeners();
+      var res = await SqlConn.readData("Flt_Get_Order_Details  '$os','$ordNo'");
+      // ignore: avoid_print
+      var valueMap = json.decode(res);
+      print("order details-----$valueMap");
+      orderDetails.clear();
+      for (var item in valueMap) {
+        orderDetails.add(item);
+      }
+      isOrderLoading = false;
+      notifyListeners();
+    } catch (e) {
+      print("An unexpected error occurred: $e");
+      SqlConn.disconnect();
+      // Handle other types of exceptions
+    } 
+    finally {
+      if (SqlConn.isConnected) 
+      {
+        // If connected, do not pop context as it may dismiss the error dialog
+        // Navigator.pop(context);
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(builder: (context) => MainHome()),
+        // );
+        debugPrint("Database connected, not popping context.");
+      } 
+      else 
+      {
+        // If not connected, pop context to dismiss the dialog
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Not Connected.!",
+                    style: TextStyle(fontSize: 13),
+                  ),
+                  SpinKitCircle(
+                    color: Colors.green,
+                  )
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    await initYearsDb(context, "");
+                    Navigator.of(context).pop();
+                  },
+                  child: Text('Connect'),
+                ),
+              ],
+            );
+          },
+        );
+        debugPrint("Database not connected, popping context.");
+      }
     }
-    isOrderLoading = false;
-    notifyListeners();
   }
 
 ///////////////////////////////////////////////////////////////

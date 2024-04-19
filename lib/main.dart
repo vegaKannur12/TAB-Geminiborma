@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jeminiborma/controller/controller.dart';
 import 'package:jeminiborma/screen/authentication/registration.dart';
+import 'package:jeminiborma/screen/db_selection.dart';
 import 'package:jeminiborma/screen/home_page.dart';
 import 'package:jeminiborma/screen/splashscreen.dart';
 import 'package:provider/provider.dart';
@@ -91,6 +92,10 @@ class MyApp extends StatelessWidget {
             primaryColor: Color.fromARGB(255, 102, 76, 175),
             secondaryHeaderColor: Color.fromARGB(255, 219, 218, 218)),
         debugShowCheckedModeBanner: false,
-        home: SplashScreen());
+        home:
+        // DBSelection()
+         SplashScreen(),
+        //  Registration()
+    );
   }
 }

@@ -27,7 +27,7 @@ class _OrderListState extends State<OrderList> {
       setState(() {
         selectedDate = picked;
         date = DateFormat('dd-MMM-yyyy').format(selectedDate);
-        Provider.of<Controller>(context, listen: false).getorderList(date!);
+        Provider.of<Controller>(context, listen: false).getorderList(date!,context);
       });
     } else {
       date = DateFormat('dd-MMM-yyyy').format(selectedDate);
@@ -39,7 +39,7 @@ class _OrderListState extends State<OrderList> {
     // TODO: implement initState
     super.initState();
     date = DateFormat('dd-MMM-yyyy').format(selectedDate);
-    Provider.of<Controller>(context, listen: false).getorderList(date!);
+    Provider.of<Controller>(context, listen: false).getorderList(date!,context);
   }
 
   @override
@@ -176,7 +176,7 @@ class _OrderListState extends State<OrderList> {
                                   }
                                   Provider.of<Controller>(context,
                                           listen: false)
-                                      .getorderDetails(ordNo);
+                                      .getorderDetails(ordNo,context);
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(

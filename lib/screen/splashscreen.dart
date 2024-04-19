@@ -1,3 +1,4 @@
+import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:jeminiborma/controller/controller.dart';
 import 'package:jeminiborma/screen/authentication/login.dart';
@@ -48,7 +49,9 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   navigate() async {
-    await Future.delayed(Duration(seconds: 3), () async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? m_db = prefs.getString("multi_db");
+    await Future.delayed(const Duration(seconds: 3), () async {
       isLoggedIn = await checkLogin();
       isRegistered = await checkRegistration();
       Navigator.push(
@@ -56,16 +59,19 @@ class _SplashScreenState extends State<SplashScreen> {
           PageRouteBuilder(
               opaque: false, // set to false
               pageBuilder: (_, __, ___) {
-                if (isRegistered) 
-                {
-                  return DBSelection();
-                } 
-                else 
-                {
-                  return Registration();
+                if (isRegistered) {
+                  // return DBSelection();
+                  if (m_db != "1") {
+                    Provider.of<Controller>(context, listen: false)
+                        .initDb(context, "");
+                    return const LoginPage();
+                  } else {
+                    return const DBSelection();
+                  }
+                } else {
+                  return const Registration();
                 }
-              })
-              );
+              }));
     });
   }
 
@@ -114,7 +120,7 @@ class _SplashScreenState extends State<SplashScreen> {
             //       //     // width: 150,
             //       //     child: Image.asset(
             //       //       "assets/logo_black_bg.png",
-            //       //     )), 
+            //       //     )),
             //     ],
             //   ),
             // )

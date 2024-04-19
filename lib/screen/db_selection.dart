@@ -19,8 +19,7 @@ class _DBSelectionState extends State<DBSelection> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      
+    WidgetsBinding.instance.addPostFrameCallback((_) {     
       Provider.of<Controller>(context, listen: false).getDatabasename(context, "");
       // Provider.of<Controller>(context, listen: false).getDbName();
     });
@@ -32,9 +31,9 @@ class _DBSelectionState extends State<DBSelection> {
     return WillPopScope(
       onWillPop: () => _onBackPressed(context),
       child: Scaffold(
-        backgroundColor: Colors.black,
+        backgroundColor: Theme.of(context).primaryColor,
         // parseColor("#46bdc6"),
-        appBar: AppBar(backgroundColor: Colors.black,
+        appBar: AppBar(backgroundColor: Colors.transparent,
           // backgroundColor: parseColor("#46bdc6"),
           elevation: 0,
           automaticallyImplyLeading: false,
@@ -47,7 +46,7 @@ class _DBSelectionState extends State<DBSelection> {
         body: Consumer<Controller>(
             builder: (context, value, child) => value.isdbLoading
                 ? const SpinKitCircle(
-                    color: Colors.blue,
+                    color: Colors.white,
                   )
                 : Align(
                     alignment: Alignment.center,

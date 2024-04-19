@@ -6,16 +6,13 @@ import 'package:provider/provider.dart';
 
 class OrderForm extends StatefulWidget {
   Orientation ori;
-   OrderForm({
-    required this.ori,
-    super.key});
+  OrderForm({required this.ori, super.key});
 
   @override
   State<OrderForm> createState() => _OrderFormState();
 }
 
 class _OrderFormState extends State<OrderForm> {
-  
   // List<Map<String, dynamic>> categoryList = [
   //   {"cat": "Puffs", "image": ""},
   //   {"cat": "Puffs", "image": ""},
@@ -27,31 +24,34 @@ class _OrderFormState extends State<OrderForm> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    Orientation ori=widget.ori;
+    Orientation ori = widget.ori;
     return Padding(
-    padding: const EdgeInsets.all(8.0),
-    child: Consumer<Controller>(
-      builder: (context, value, child) {
+      padding: const EdgeInsets.all(8.0),
+      child: Consumer<Controller>(builder: (context, value, child) {
         // final port=widget.isPortrait;
         return Container(
-        child: GridView.builder(
-          shrinkWrap: true,
-          physics: const ScrollPhysics(),
-          itemCount: value.categoryList.length,
-          gridDelegate:  SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: ori==Orientation.portrait?2:4,childAspectRatio: 1.4,
-              crossAxisSpacing: 12, mainAxisSpacing: 12),
-          itemBuilder: (context, index) {
-            return categoryWidget(size, index, value.categoryList[index]);
-          },
-        ),
-      );}
-    ),
-          );
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const ScrollPhysics(),
+            itemCount: value.categoryList.length,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: ori == Orientation.portrait ? 2 : 4,
+                // childAspectRatio: 1.4,//tab,
+                 childAspectRatio: 1.5,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12),
+            itemBuilder: (context, index) {
+              return categoryWidget(size, index, value.categoryList[index]);
+            },
+          ),
+        );
+      }),
+    );
   }
 
 ///////////////////////////////////////////////////////////////////////
-  Widget categoryWidget(Size size, int index, Map map) {
+  Widget categoryWidget(Size size, int index, Map map) 
+  {
     return Consumer<Controller>(
       builder: (context, value, child) => InkWell(
         onTap: () {
@@ -63,8 +63,7 @@ class _OrderFormState extends State<OrderForm> {
               MaterialPageRoute(
                   builder: (context) => ProductScreen(
                       catName: map["Cat_Name"].toString(),
-                      catId: map["Cat_Id"])
-                      ),
+                      catId: map["Cat_Id"])),
             );
           } else {
             CustomSnackbar snackbar = CustomSnackbar();

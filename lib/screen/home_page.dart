@@ -41,8 +41,12 @@ class _HomePageState extends State<HomePage> {
   String? selected;
   @override
   Widget build(BuildContext context) {
+
     Size size = MediaQuery.of(context).size;
     Orientation ori=MediaQuery.of(context).orientation;
+    print("Width=> ${size.width}");
+    print("Height=> ${size.height}");
+
     // return OrientationBuilder(
     //   builder: (BuildContext context, Orientation orientation) { 
     //    final isPortrait=orientation==Orientation.portrait;
