@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:jeminiborma/controller/controller.dart';
 import 'package:jeminiborma/db_helper.dart';
+import 'package:jeminiborma/screen/cart_page.dart';
 import 'package:jeminiborma/screen/item_widget.dart';
 import 'package:jeminiborma/screen/table_list.dart';
 import 'package:lottie/lottie.dart';
@@ -24,15 +25,19 @@ class _ProductScreenState extends State<ProductScreen> {
     return Scaffold(
       appBar: AppBar(
         leading: Consumer<Controller>(
-          builder: (BuildContext context, Controller value, Widget? child)=> IconButton(
-              onPressed: () {
-                Provider.of<Controller>(context, listen: false).viewCart(
-                  context,
-                  value.customerId.toString(),
-                );
-                Navigator.pop(context);
-              },
-              icon: Icon(Icons.arrow_back,color: Colors.white,)),
+          builder: (BuildContext context, Controller value, Widget? child) =>
+              IconButton(
+                  onPressed: () {
+                    // Provider.of<Controller>(context, listen: false).viewCart(
+                    //   context,
+                    //   value.customerId.toString(),
+                    // );
+                    Navigator.pop(context);
+                  },
+                  icon: Icon(
+                    Icons.arrow_back,
+                    color: Colors.white,
+                  )),
         ),
         backgroundColor: Theme.of(context).primaryColor,
         title: Text(
@@ -40,6 +45,30 @@ class _ProductScreenState extends State<ProductScreen> {
           style: TextStyle(
               color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
         ),
+        // actions: [
+        //   Consumer<Controller>(
+        //       builder: (BuildContext context, Controller value,
+        //               Widget? child) =>
+        //           IconButton(
+        //               onPressed: () async {
+        //                 await Provider.of<Controller>(context, listen: false)
+        //                     .viewCart(
+        //                   context,
+        //                   value.customerId.toString(),
+        //                 );
+        //                 if (value.cartItems.isNotEmpty) {
+        //                   Navigator.push(
+        //                     context,
+        //                     MaterialPageRoute(
+        //                         builder: (context) => const CartPage()),
+        //                   );
+        //                 }
+        //               },
+        //               icon: Icon(
+        //                 Icons.shopping_cart,
+        //                 color: Colors.white,
+        //               )))
+        // ],
       ),
       body: Consumer<Controller>(
         builder: (context, value, child) => value.isLoading

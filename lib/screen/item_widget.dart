@@ -40,7 +40,7 @@ class _ItemWidgetState extends State<ItemWidget> {
                   height: size.height * 0.34,
                 )))
               : ResponsiveGridList(
-                  minItemWidth: size.width/1.2,   //300
+                  minItemWidth: size.width / 1.2, //300
                   minItemsPerRow: 1, maxItemsPerRow: 2,
                   // crossAxisCount: ori == Orientation.portrait ? 1 : 2,
                   // childAspectRatio: ori == Orientation.portrait ? 4 : 3.5,   //tab
@@ -188,6 +188,13 @@ class _ItemWidgetState extends State<ItemWidget> {
                                                           "from itempage",
                                                           0,
                                                           widget.catId);
+                                                  Provider.of<Controller>(
+                                                          context,
+                                                          listen: false)
+                                                      .viewCart(
+                                                    context,
+                                                    value.customerId.toString(),
+                                                  );
                                                 }
                                               },
                                         icon: value.response[index] > 0
@@ -249,6 +256,12 @@ class _ItemWidgetState extends State<ItemWidget> {
                                                       "from itempage",
                                                       0,
                                                       widget.catId);
+                                              Provider.of<Controller>(context,
+                                                      listen: false)
+                                                  .viewCart(
+                                                context,
+                                                value.customerId.toString(),
+                                              );
                                             },
                                             onChanged: (val) {
                                               value.response[index] = 0;

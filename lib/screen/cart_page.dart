@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:intl/intl.dart';
 import 'package:jeminiborma/controller/controller.dart';
+import 'package:jeminiborma/screen/home_page.dart';
 import 'package:lottie/lottie.dart';
 import 'package:provider/provider.dart';
 
@@ -14,6 +15,7 @@ class CartPage extends StatefulWidget {
 
 class _CartPageState extends State<CartPage> {
   String? date;
+  bool recon = false;
   @override
   void initState() {
     // TODO: implement initState
@@ -72,15 +74,117 @@ class _CartPageState extends State<CartPage> {
                                     },
                                     child: Text('No')),
                                 ElevatedButton(
-                                    onPressed: () {
-                                      value.saveOrder(context, date.toString(),
-                                          value.sum, value.cartItems.length);
-                                      Navigator.pop(context);
+                                    onPressed: () async {
+                                      //  await value.saveOrder(context, date.toString(),
+                                      //       value.sum, value.cartItems.length);
+                                      //   Navigator.pop(context);
+                                      if (recon == true) {
+                                        await value.initYearsDb(context, "");
+                                      }
+                                      bool isSuccess = await value.saveOrder(
+                                          context,
+                                          date.toString(),
+                                          value.sum,
+                                          value.cartItems.length);
+                                      if (isSuccess) {
+                                        print("order result---$isSuccess");
+                                        showDialog(
+                                          barrierDismissible: false,
+                                          context: context,
+                                          builder: (context) {
+                                            Size size =
+                                                MediaQuery.of(context).size;
+                                            Future.delayed(Duration(seconds: 2),
+                                                () async {
+                                              Navigator.of(context).pop(true);
+                                              await Provider.of<Controller>(
+                                                      context,
+                                                      listen: false)
+                                                  .clearall(context);
+
+                                              Navigator.of(context).push(
+                                                PageRouteBuilder(
+                                                    opaque:
+                                                        false, // set to false
+                                                    pageBuilder: (_, __, ___) =>
+                                                        HomePage()
+                                                    // OrderForm(widget.areaname,"return"),
+                                                    ),
+                                              );
+                                            });
+                                            return AlertDialog(
+                                              content: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Text(
+                                                    'Order Saved...',
+                                                    style: TextStyle(
+                                                        color: Colors.green,
+                                                        fontWeight:
+                                                            FontWeight.bold),
+                                                  ),
+                                                  // ),
+                                                  Icon(
+                                                    Icons.done,
+                                                    color: Colors.green,
+                                                  )
+                                                ],
+                                              ),
+                                              // actions: [
+                                              //   ElevatedButton(
+                                              //     child: const Text('OK'),
+                                              //     onPressed: () {
+                                              //       Navigator.of(context)
+                                              //           .pop(true);
+                                              //       Provider.of<Controller>(
+                                              //               context,
+                                              //               listen: false)
+                                              //           .clearall();
+
+                                              //       Navigator.of(context).push(
+                                              //         PageRouteBuilder(
+                                              //           opaque: false,
+                                              //           pageBuilder:
+                                              //               (_, __, ___) =>
+                                              //                   HomePage(),
+                                              //         ),
+                                              //       );
+                                              //     },
+                                              //   ),
+                                              // ],
+                                            );
+                                          },
+                                        );
+                                      } else {
+                                        print("order result---$isSuccess");
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) {
+                                            return AlertDialog(
+                                              title: Text('Save Failed'),
+                                              content: Text(
+                                                  'An error occurred while saving the order. Please try again.'),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () async {
+                                                    setState(() {
+                                                      recon = true;
+                                                    });
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  child: Text('OK'),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                      }
                                     },
                                     child: Text("Yes"))
                               ],
                             );
-                          });
+                          }) ;
                     },
                     icon: Icon(
                       Icons.save,
@@ -259,10 +363,10 @@ class _CartPageState extends State<CartPage> {
                           children: [
                             InkWell(
                                 onTap: () async {
-                                  Provider.of<Controller>(context,
+                                  await Provider.of<Controller>(context,
                                           listen: false)
                                       .setQty(1.0, index, "dec");
-                                  Provider.of<Controller>(context,
+                                  await Provider.of<Controller>(context,
                                           listen: false)
                                       .updateCart(
                                           context,
@@ -340,12 +444,12 @@ class _CartPageState extends State<CartPage> {
                               ),
                             ),
                             InkWell(
-                                onTap: () {
-                                  Provider.of<Controller>(context,
+                                onTap: () async {
+                                  await Provider.of<Controller>(context,
                                           listen: false)
                                       .setQty(1.0, index, "inc");
 
-                                  Provider.of<Controller>(context,
+                                  await Provider.of<Controller>(context,
                                           listen: false)
                                       .updateCart(
                                           context,

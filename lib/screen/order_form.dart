@@ -35,12 +35,13 @@ class _OrderFormState extends State<OrderForm> {
             physics: const ScrollPhysics(),
             itemCount: value.categoryList.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: ori == Orientation.portrait ? 2 : 4,
-                // childAspectRatio: 1.4,//tab,
+                 crossAxisCount: ori == Orientation.portrait ? 3 : 4,
+              // childAspectRatio: 1.4,//tab,
                  childAspectRatio: 1.5,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12),
-            itemBuilder: (context, index) {
+                 crossAxisSpacing: 12,
+                 mainAxisSpacing: 12),
+            itemBuilder: (context, index) 
+            {
               return categoryWidget(size, index, value.categoryList[index]);
             },
           ),

@@ -249,7 +249,6 @@ class _RegistrationState extends State<Registration> {
                         String tempFp1 = await externalDir.fileRead();
 
                         print("tempFp---${tempFp1}");
-
                         Provider.of<Controller>(context, listen: false)
                             .postRegistration(company.text, tempFp1, phone.text,
                                 deviceInfo, context);

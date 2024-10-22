@@ -61,14 +61,21 @@ class _SplashScreenState extends State<SplashScreen> {
               pageBuilder: (_, __, ___) {
                 if (isRegistered) {
                   // return DBSelection();
-                  if (m_db != "1") {
+                  if (m_db != "1") 
+                  {
+                    
+                    print("m_db----$m_db");
                     Provider.of<Controller>(context, listen: false)
                         .initDb(context, "");
                     return const LoginPage();
-                  } else {
+                  } 
+                  else 
+                  {
                     return const DBSelection();
                   }
-                } else {
+                } 
+                else 
+                {
                   return const Registration();
                 }
               }));

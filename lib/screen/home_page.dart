@@ -30,6 +30,12 @@ class _HomePageState extends State<HomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<Controller>(context, listen: false).initDb(context, "");
       Provider.of<Controller>(context, listen: false).getOs();
+      if (Provider.of<Controller>(context, listen: false).customerId != null) {
+        Provider.of<Controller>(context, listen: false).viewCart(
+          context,
+          Provider.of<Controller>(context, listen: false).customerId.toString(),
+        );
+      }
 
       // Provider.of<Controller>(context, listen: false).getCategoryList(context);
       // Provider.of<Controller>(context, listen: false).getCustomerList(context);
@@ -41,328 +47,333 @@ class _HomePageState extends State<HomePage> {
   String? selected;
   @override
   Widget build(BuildContext context) {
-
     Size size = MediaQuery.of(context).size;
-    Orientation ori=MediaQuery.of(context).orientation;
+    Orientation ori = MediaQuery.of(context).orientation;
     print("Width=> ${size.width}");
     print("Height=> ${size.height}");
 
     // return OrientationBuilder(
-    //   builder: (BuildContext context, Orientation orientation) { 
+    //   builder: (BuildContext context, Orientation orientation) {
     //    final isPortrait=orientation==Orientation.portrait;
-       return Scaffold(
-        extendBody: true,
-        appBar: AppBar(
-          // leading: Consumer<Controller>(
-          //     builder: (BuildContext context, Controller value, Widget? child) =>
-          //         Text(
-          //           value.os.toString(),
-          //           style: TextStyle(
-          //               fontWeight: FontWeight.bold, color: Colors.white,fontSize: 14),
-          //         )),
-          automaticallyImplyLeading: false,
-          title: Consumer<Controller>(
-              builder: (BuildContext context, Controller value, Widget? child) =>
-                  Text(
-                    value.os.toString(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  )),
-          backgroundColor: Theme.of(context).primaryColor,
-          actions: [
-            TextButton(
-                onPressed: () {
-                  Provider.of<Controller>(context, listen: false)
-                      .setIsSearch(false);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const OrderList()),
-                  );
-                },
-                child: const Row(
-                  children: [
-                    Text(
-                      "View Order History",
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
-                    SizedBox(
-                      width: 6,
-                    ),
-                    Icon(
-                      Icons.history,
-                      color: Colors.white,
-                    )
-                  ],
-                ))
-          ],
-        ),
-        // bottomNavigationBar: BottomNavigationBar(items: [
-        //   BottomNavigationBarItem(
-        //     icon: Icon(Icons.shopping_cart),
-        //     tooltip: "jkdjdsj"
-        //   )
-        // ]),
-        bottomNavigationBar: Container(
-          height: size.height * 0.06,
-          decoration: BoxDecoration(
-            color: Theme.of(context).primaryColor,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-          child: Consumer<Controller>(
-            builder: (context, value, child) => InkWell(
-              onTap: () {
-                if (value.customerId != null) {
-                  Provider.of<Controller>(context, listen: false).viewCart(
-                    context,
-                    value.customerId.toString(),
-                  );
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const CartPage()),
-                  );
-                } else {
-                  CustomSnackbar snackbar = CustomSnackbar();
-                  snackbar.showSnackbar(
-                      context, "Please choose a Customer!!! ", "");
-                }
+    return Scaffold(
+      extendBody: true,
+      appBar: AppBar(
+        // leading: Consumer<Controller>(
+        //     builder: (BuildContext context, Controller value, Widget? child) =>
+        //         Text(
+        //           value.os.toString(),
+        //           style: TextStyle(
+        //               fontWeight: FontWeight.bold, color: Colors.white,fontSize: 14),
+        //         )),
+        automaticallyImplyLeading: false,
+        title: Consumer<Controller>(
+            builder: (BuildContext context, Controller value, Widget? child) =>
+                Text(
+                  value.os.toString(),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                )),
+        backgroundColor: Theme.of(context).primaryColor,
+        actions: [
+          TextButton(
+              onPressed: () {
+                Provider.of<Controller>(context, listen: false)
+                    .setIsSearch(false);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const OrderList()),
+                );
               },
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              child: const Row(
                 children: [
                   Text(
-                    "View Order",
+                    "View Order History",
                     style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18),
+                        fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                   SizedBox(
                     width: 6,
                   ),
-                  badges.Badge(
-                    position: badges.BadgePosition.topEnd(top: -10, end: -19),
-                    showBadge: true,
-                    badgeContent: Text(
-                      value.cartCount == null ? "0" : value.cartCount.toString(),
-                      style: TextStyle(color: Colors.white),
-                    ),
-                    child: Icon(
-                      Icons.shopping_cart,
-                      color: Colors.white,
-                    ),
-                  ),
-      
-                  // ElevatedButton.icon(
-                  //     style: ElevatedButton.styleFrom(primary: Colors.green),
-                  //     onPressed: () {
-                  //       if (value.customerId != null) {
-                  //         Provider.of<Controller>(context, listen: false).viewCart(
-                  //           context,
-                  //           value.customerId.toString(),
-                  //         );
-                  //         Navigator.push(
-                  //           context,
-                  //           MaterialPageRoute(
-                  //               builder: (context) => const CartPage()),
-                  //         );
-                  //       } else {
-                  //         CustomSnackbar snackbar = CustomSnackbar();
-                  //         snackbar.showSnackbar(
-                  //             context, "Please choose a Customer", "");
-                  //       }
-                  //     },
-                  //     icon: Icon(
-                  //       Icons.shopping_cart,
-                  //       color: Colors.white,
-                  //     ),
-                  //     label: Text(
-                  //       "View Cart",
-                  //       style: TextStyle(color: Colors.white),
-                  //     )),
-                  // ElevatedButton.icon(
-                  //     style: ElevatedButton.styleFrom(primary: Colors.green),
-                  //     onPressed: () async {
-                  //       await showDialog(
-                  //           context: context,
-                  //           builder: (context) {
-                  //             return AlertDialog(
-                  //               content: Text(
-                  //                 'Save Order?',
-                  //                 style: TextStyle(
-                  //                     fontWeight: FontWeight.bold, fontSize: 16),
-                  //               ),
-                  //               actions: <Widget>[
-                  //                 ElevatedButton(
-                  //                     onPressed: () {
-                  //                       Navigator.of(context, rootNavigator: true)
-                  //                           .pop(false);
-                  //                     },
-                  //                     child: Text('No')),
-                  //                 ElevatedButton(
-                  //                     onPressed: () {
-                  //                       // Provider.of<Controller>(context,
-                  //                       //         listen: false)
-                  //                       //     .viewCart(
-                  //                       //   context,
-                  //                       //   value.customerId.toString(),
-                  //                       // );
-                  //                       value.saveOrder(context, date.toString(),
-                  //                           value.sum, value.cartItems.length);
-                  //                       Navigator.pop(context);
-                  //                     },
-                  //                     child: Text("Yes"))
-                  //               ],
-                  //             );
-                  //           });
-                  //     },
-                  //     icon: Icon(
-                  //       Icons.save,
-                  //       color: Colors.white,
-                  //     ),
-                  //     label: Text(
-                  //       "SAVE",
-                  //       style: TextStyle(color: Colors.white),
-                  //     ))
+                  Icon(
+                    Icons.history,
+                    color: Colors.white,
+                  )
                 ],
-              ),
-            ),
+              ))
+        ],
+      ),
+      // bottomNavigationBar: BottomNavigationBar(items: [
+      //   BottomNavigationBarItem(
+      //     icon: Icon(Icons.shopping_cart),
+      //     tooltip: "jkdjdsj"
+      //   )
+      // ]),
+      bottomNavigationBar: Container(
+        height: size.height * 0.06,
+        decoration: BoxDecoration(
+          color: Theme.of(context).primaryColor,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
           ),
         ),
-        body: SingleChildScrollView(
-          child: Consumer<Controller>(
-            builder: (context, value, child) => Column(
+        child: Consumer<Controller>(
+          builder: (context, value, child) => InkWell(
+            onTap: () async {
+              if (value.customerId != null) {
+                await Provider.of<Controller>(context, listen: false).viewCart(
+                  context,
+                  value.customerId.toString(),
+                );
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const CartPage()),
+                );
+              } else {
+                CustomSnackbar snackbar = CustomSnackbar();
+                snackbar.showSnackbar(
+                    context, "Please choose a Customer!!! ", "");
+              }
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                Text(
+                  "View Order",
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18),
+                ),
                 SizedBox(
-                  height: size.height * 0.02,
+                  width: 6,
                 ),
-                Row(
-                  children: [
-                    Container(
-                      margin: EdgeInsets.only(left: 8),
-                      width: size.width * 0.87,
-                      // height: size.height * 0.06,
-                      child: IgnorePointer(
-                        ignoring: value.isfreez ? true : false,
-                        child: DropdownSearch<CustomerModel>(
-                          dropdownBuilder: (context, selectedItem) {
-                            return Text(
-                              value.selected == null
-                                  ? "Select Customer"
-                                  : selectedItem!.accName.toString(),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black,
-                              ),
-                            );
-                          },
-                          // selectedItem: _selected,
-                          validator: (text) {
-                            if (text == null) {
-                              return 'Please Select Customer';
-                            }
-                            return null;
-                          },
-                          // key: _key1,
-      
-                          itemAsString: (item) => item.accName.toString(),
-                          asyncItems: (filter) =>
-                              Provider.of<Controller>(context, listen: false)
-                                  .getCustomerList(context, filter),
-                          popupProps: PopupProps.menu(
-                            // showSelectedItems: true,
-                            isFilterOnline: true,
-                            showSearchBox: true,
-                            searchFieldProps: TextFieldProps(
-                              controller: cusCon,
-                              decoration: InputDecoration(
-                                  hintText: "Type Here",
-                                  hintStyle: TextStyle(
-                                      color: Colors.grey[500], fontSize: 17),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  )),
-                            ),
-                          ),
-                          // items: ["anu", "shilpa", "danush"],
-                          onChanged: (values) {
-                            selectedItem = values!;
-                            value.selected = values.accName;
-                            value.setcustomerId(values.accId.toString(), context);
-                          },
-                          dropdownDecoratorProps: DropDownDecoratorProps(
-                              dropdownSearchDecoration: InputDecoration(
-                                  fillColor: Colors.white,
-                                  filled: true,
-                                  // hintText: "Select Customer",
-                                  hintStyle: TextStyle(
-                                      color: Colors.grey[700], fontSize: 17),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ))),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: IconButton(
-                          color: const Color.fromARGB(255, 12, 67, 161),
-                          onPressed: () {
-                            selectedItem = CustomerModel();
-                            value.selected = null;
-                            value.freezeDropdown(false);
-                            setState(() {});
-                          },
-                          icon: Icon(
-                            Icons.refresh,
-                            size: 29,
-                          )),
-                    )
-                  ],
-                ),
-                // Container(
-                //   child: Text("Customer Slecetion"),
-                // ),
-                Container(
-                  margin:
-                      EdgeInsets.only(top: 10, bottom: 10, right: 20, left: 10),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      Icon(Icons.calendar_month),
-                      SizedBox(
-                        width: 15,
-                      ),
-                      Text(
-                        date.toString(),
-                        style: TextStyle(
-                            color: Colors.red,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ],
+                badges.Badge(
+                  position: badges.BadgePosition.topEnd(top: -10, end: -19),
+                  showBadge: true,
+                  badgeContent: Text(
+                    value.cartCount == null ? "0" : value.cartCount.toString(),
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  child: Icon(
+                    Icons.shopping_cart,
+                    color: Colors.white,
                   ),
                 ),
-                value.isCusLoading
-                    ? SpinKitCircle(
-                        color: Colors.black,
-                      )
-                    : OrderForm(ori: ori,),
+
+                // ElevatedButton.icon(
+                //     style: ElevatedButton.styleFrom(primary: Colors.green),
+                //     onPressed: () {
+                //       if (value.customerId != null) {
+                //         Provider.of<Controller>(context, listen: false).viewCart(
+                //           context,
+                //           value.customerId.toString(),
+                //         );
+                //         Navigator.push(
+                //           context,
+                //           MaterialPageRoute(
+                //               builder: (context) => const CartPage()),
+                //         );
+                //       } else {
+                //         CustomSnackbar snackbar = CustomSnackbar();
+                //         snackbar.showSnackbar(
+                //             context, "Please choose a Customer", "");
+                //       }
+                //     },
+                //     icon: Icon(
+                //       Icons.shopping_cart,
+                //       color: Colors.white,
+                //     ),
+                //     label: Text(
+                //       "View Cart",
+                //       style: TextStyle(color: Colors.white),
+                //     )),
+                // ElevatedButton.icon(
+                //     style: ElevatedButton.styleFrom(primary: Colors.green),
+                //     onPressed: () async {
+                //       await showDialog(
+                //           context: context,
+                //           builder: (context) {
+                //             return AlertDialog(
+                //               content: Text(
+                //                 'Save Order?',
+                //                 style: TextStyle(
+                //                     fontWeight: FontWeight.bold, fontSize: 16),
+                //               ),
+                //               actions: <Widget>[
+                //                 ElevatedButton(
+                //                     onPressed: () {
+                //                       Navigator.of(context, rootNavigator: true)
+                //                           .pop(false);
+                //                     },
+                //                     child: Text('No')),
+                //                 ElevatedButton(
+                //                     onPressed: () {
+                //                       // Provider.of<Controller>(context,
+                //                       //         listen: false)
+                //                       //     .viewCart(
+                //                       //   context,
+                //                       //   value.customerId.toString(),
+                //                       // );
+                //                       value.saveOrder(context, date.toString(),
+                //                           value.sum, value.cartItems.length);
+                //                       Navigator.pop(context);
+                //                     },
+                //                     child: Text("Yes"))
+                //               ],
+                //             );
+                //           });
+                //     },
+                //     icon: Icon(
+                //       Icons.save,
+                //       color: Colors.white,
+                //     ),
+                //     label: Text(
+                //       "SAVE",
+                //       style: TextStyle(color: Colors.white),
+                //     ))
               ],
             ),
           ),
         ),
-      );
-    
+      ),
+      body: SingleChildScrollView(
+        child: Consumer<Controller>(
+          builder: (context, value, child) => Column(
+            children: [
+              SizedBox(
+                height: size.height * 0.02,
+              ),
+              Row(
+                children: [
+                  Container(
+                    margin: EdgeInsets.only(left: 8),
+                    width: size.width * 0.87,
+                    // height: size.height * 0.06,
+                    child: IgnorePointer(
+                      ignoring: value.isfreez ? true : false,
+                      child: DropdownSearch<CustomerModel>(
+                        dropdownBuilder: (context, selectedItem) {
+                          return Text(
+                            value.selected == null
+                                ? "Select Customer"
+                                : selectedItem!.accName.toString(),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
+                          );
+                        },
+                        // selectedItem: _selected,
+                        validator: (text) {
+                          if (text == null) {
+                            return 'Please Select Customer';
+                          }
+                          return null;
+                        },
+                        // key: _key1,
+
+                        itemAsString: (item) => item.accName.toString(),
+                        asyncItems: (filter) =>
+                            Provider.of<Controller>(context, listen: false)
+                                .getCustomerList(context, filter),
+                        popupProps: PopupProps.menu(
+                          // showSelectedItems: true,
+                          isFilterOnline: true,
+                          showSearchBox: true,
+                          searchFieldProps: TextFieldProps(
+                            controller: cusCon,
+                            decoration: InputDecoration(
+                                hintText: "Type Here",
+                                hintStyle: TextStyle(
+                                    color: Colors.grey[500], fontSize: 17),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                )),
+                          ),
+                        ),
+                        // items: ["anu", "shilpa", "danush"],
+                        onChanged: (values) {
+                          selectedItem = values!;
+                          value.selected = values.accName;
+                          value.setcustomerId(values.accId.toString(), context);
+                        },
+                        dropdownDecoratorProps: DropDownDecoratorProps(
+                            dropdownSearchDecoration: InputDecoration(
+                                fillColor: Colors.white,
+                                filled: true,
+                                // hintText: "Select Customer",
+                                hintStyle: TextStyle(
+                                    color: Colors.grey[700], fontSize: 17),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(10.0),
+                                ))),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: IconButton(
+                        color: const Color.fromARGB(255, 12, 67, 161),
+                        onPressed: () async {
+                          selectedItem = CustomerModel();
+                          value.selected = null;
+                          value.freezeDropdown(false);
+                          value.cartItems.clear();
+                          value.cartCount = 0;
+                          value.customerId = null;
+                          await value.viewCart(
+                              context, value.customerId.toString());
+                          setState(() {});
+                        },
+                        icon: Icon(
+                          Icons.refresh,
+                          size: 29,
+                        )),
+                  )
+                ],
+              ),
+              // Container(
+              //   child: Text("Customer Slecetion"),
+              // ),
+              Container(
+                margin:
+                    EdgeInsets.only(top: 10, bottom: 10, right: 20, left: 10),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Icon(Icons.calendar_month),
+                    SizedBox(
+                      width: 15,
+                    ),
+                    Text(
+                      date.toString(),
+                      style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+              value.isCusLoading
+                  ? SpinKitCircle(
+                      color: Colors.black,
+                    )
+                  : OrderForm(
+                      ori: ori,
+                    ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

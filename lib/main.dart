@@ -20,7 +20,9 @@ Future<void> main() async {
   isLoggedIn = await checkLogin();
   isRegistered = await checkRegistration();
   requestPermission();
-  SystemChrome.setPreferredOrientations([
+  SystemChrome.setPreferredOrientations
+  (
+    [
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
     DeviceOrientation.landscapeLeft,
@@ -77,7 +79,8 @@ void requestPermission() async {
     await Permission.manageExternalStorage.request();
   } else if (status.isRestricted) {
     await Permission.manageExternalStorage.request();
-  } else if (status.isPermanentlyDenied) {
+  } else if (status.isPermanentlyDenied) 
+  {
     await Permission.manageExternalStorage.request();
   }
 }

@@ -1,9 +1,10 @@
 import 'dart:convert';
-
+import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:jeminiborma/components/custom_snackbar.dart';
 import 'package:jeminiborma/components/external_dir.dart';
 import 'package:jeminiborma/db_helper.dart';
@@ -14,7 +15,6 @@ import 'package:jeminiborma/screen/db_selection.dart';
 import 'package:jeminiborma/screen/home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sql_conn/sql_conn.dart';
-
 import '../components/network_connectivity.dart';
 
 class Controller extends ChangeNotifier {
@@ -79,6 +79,7 @@ class Controller extends ChangeNotifier {
   List<bool> isAdded = [];
   bool isLoginLoading = false;
   List<Map<String, dynamic>> db_list = [];
+  String? date;
   /////////////////////////////////////////////
   Future<RegistrationData?> postRegistration(
       String companyCode,
@@ -177,7 +178,8 @@ class Controller extends ChangeNotifier {
                 if (m_db != "1") {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => LoginPage()), //m_db=0
+                    MaterialPageRoute(
+                        builder: (context) => LoginPage()), //m_db=0
                   );
                 } else {
                   Navigator.push(
@@ -261,24 +263,24 @@ class Controller extends ChangeNotifier {
           );
         },
       );
-      if (multi_db == "1") {
-        await SqlConn.connect(
-          ip: ip!,
-          port: port!,
-          databaseName: db!,
-          username: un!,
-          password: pw!,
-          timeout: 10,
-        );
-        //  Navigator.push(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => LoginPage()),
-        // );
-      }
-      debugPrint("Connected selected DB!----$ip------$db");
+      // if (multi_db == "1") {
+      await SqlConn.connect(
+        ip: ip!,
+        port: port!,
+        databaseName: db!,
+        username: un!,
+        password: pw!,
+        timeout: 10,
+      );
+      //  Navigator.push(
+      //   context,
+      //   MaterialPageRoute(builder: (context) => LoginPage()),
+      // );
+      // }
+      debugPrint("Connected selected DB!----$ip------$db");Navigator.pop(context);
       // getDatabasename(context, type);
-      CustomSnackbar snackbar = CustomSnackbar();
-      snackbar.showSnackbar(context, "Connected successfully..", "");
+      // CustomSnackbar snackbar = CustomSnackbar();
+      // snackbar.showSnackbar(context, "Connected successfully..", "");
       SharedPreferences prefs = await SharedPreferences.getInstance();
       // yr = prefs.getString("yr_name");
       // dbn = prefs.getString("db_name");
@@ -289,10 +291,120 @@ class Controller extends ChangeNotifier {
       // prefs.setString("yr_name", yrnam.toString());
       // getDbName();
       // getBranches(context);
+      if (type == "VCART") {
+        print("vcart");
+        await viewCart(context, customerId.toString());
+      }
+      if (type == "CAT") {
+        await getCategoryList(context);
+      } else if (type == "INDB") {
+        await initDb(context, "");
+      } else if (type == "INYR") {
+        await initYearsDb(context, "");
+      }
+      // else if (type == "LOG") {
+      //   await getLogin(context);
+      // }
+      else if (type == "CARTNO") {
+        await getCartNo(context);
+      } else if (type == "CUS") {
+        await getCustomerList(context, "");
+      } else if (type == "SAVE") {
+        // print("save from recon");
+        // date = DateFormat('dd-MMM-yyyy').format(DateTime.now());
+        // bool isSuccess =
+        //     await saveOrder(context, date.toString(), sum, cartItems.length);
+        // if (isSuccess) {
+        //   Navigator.of(context).pop();
+        //   print("order result---$isSuccess");
+        //   showDialog(
+        //     barrierDismissible: false,
+        //     context: context,
+        //     builder: (context) {
+        //       Size size = MediaQuery.of(context).size;
+        //       Future.delayed(Duration(seconds: 2), () async {
+        //         Navigator.of(context).pop(true);
+        //         await clearall(context);
+
+        //         Navigator.of(context).push(
+        //           PageRouteBuilder(
+        //               opaque: false, // set to false
+        //               pageBuilder: (_, __, ___) => HomePage()
+        //               // OrderForm(widget.areaname,"return"),
+        //               ),
+        //         );
+        //       });
+        //       return AlertDialog(
+        //         content: Row(
+        //           mainAxisAlignment: MainAxisAlignment.center,
+        //           children: [
+        //             Text(
+        //               'Order Saved...',
+        //               style: TextStyle(
+        //                   color: Colors.green, fontWeight: FontWeight.bold),
+        //             ),
+        //             // ),
+        //             Icon(
+        //               Icons.done,
+        //               color: Colors.green,
+        //             )
+        //           ],
+        //         ),
+        //         // actions: [
+        //         //   ElevatedButton(
+        //         //     child: const Text('OK'),
+        //         //     onPressed: () {
+        //         //       Navigator.of(context)
+        //         //           .pop(true);
+        //         //       Provider.of<Controller>(
+        //         //               context,
+        //         //               listen: false)
+        //         //           .clearall();
+
+        //         //       Navigator.of(context).push(
+        //         //         PageRouteBuilder(
+        //         //           opaque: false,
+        //         //           pageBuilder:
+        //         //               (_, __, ___) =>
+        //         //                   HomePage(),
+        //         //         ),
+        //         //       );
+        //         //     },
+        //         //   ),
+        //         // ],
+        //       );
+        //     },
+        //   );
+        // } else {
+        //   print("order result---$isSuccess"); Navigator.of(context).pop();
+        //   showDialog(
+        //     context: context,
+        //     builder: (context) {
+        //       return AlertDialog(
+        //         title: Text('Save Failed'),
+        //         content: Text(
+        //             'An error occurred while saving the order. Please try again.'),
+        //         actions: [
+        //           TextButton(
+        //             onPressed: () async {
+        //               Navigator.of(context).pop();
+        //             },
+        //             child: Text('OK'),
+        //           ),
+        //         ],
+        //       );
+        //     },
+        //   );
+        // }
+      } else {}
+      
+    } on PlatformException catch (e) {
+      debugPrint(e.toString());
+      debugPrint("not connected..init-YRDB..");
+      Navigator.pop(context);
+      await showConnectionDialog(context, "INYR", e.toString());
     } catch (e) {
       debugPrint(e.toString());
-    } finally {
-      Navigator.pop(context);
     }
   }
 
@@ -344,8 +456,8 @@ class Controller extends ChangeNotifier {
       isLoginLoading = true;
       notifyListeners();
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? m_db =prefs.getString("multi_db");
-      
+      String? m_db = prefs.getString("multi_db");
+
       if (userName.toLowerCase() != "vega" ||
           password.toLowerCase() != "vega") {
         CustomSnackbar snackbar = CustomSnackbar();
@@ -354,12 +466,12 @@ class Controller extends ChangeNotifier {
         isLoginLoading = false;
         notifyListeners();
       } else {
-        
         // await initDb(context, "from login");
         prefs.setString("st_uname", userName);
         prefs.setString("st_pwd", password);
         // ignore: use_build_context_synchronously
-       
+        await getCategoryList(context);
+        await getCustomerList(context, "");
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => HomePage()),
@@ -367,43 +479,49 @@ class Controller extends ChangeNotifier {
       }
       isLoginLoading = false;
       notifyListeners();
+    } on PlatformException catch (e) {
+      debugPrint("PlatformException Table: ${e.message}");
+      debugPrint("not connected..Table..");
+      // Navigator.pop(context);
+      // showConnectionDialog(context, "LOG", e.toString());
     } catch (e) {
       print("An unexpected error occurred: $e");
-      SqlConn.disconnect();
-    } finally {
-      if (SqlConn.isConnected == false) {
-        print("hi");
-        showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Not Connected.!",
-                    style: TextStyle(fontSize: 13),
-                  ),
-                  SpinKitCircle(
-                    color: Colors.green,
-                  )
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () async {
-                    await initYearsDb(context, "");
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('Connect'),
-                ),
-              ],
-            );
-          },
-        );
-        debugPrint("Database not connected, popping context.");
-      }
+      // SqlConn.disconnect();
     }
+    // finally {
+    //   if (SqlConn.isConnected == false) {
+    //     print("hi");
+    //     showDialog(
+    //       context: context,
+    //       builder: (context) {
+    //         return AlertDialog(
+    //           title: Row(
+    //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //             children: [
+    //               Text(
+    //                 "Not Connected.!",
+    //                 style: TextStyle(fontSize: 13),
+    //               ),
+    //               SpinKitCircle(
+    //                 color: Colors.green,
+    //               )
+    //             ],
+    //           ),
+    //           actions: [
+    //             TextButton(
+    //               onPressed: () async {
+    //                 await initYearsDb(context, "");
+    //                 Navigator.of(context).pop();
+    //               },
+    //               child: Text('Connect'),
+    //             ),
+    //           ],
+    //         );
+    //       },
+    //     );
+    //     debugPrint("Database not connected, popping context.");
+    //   }
+    // }
   }
 
 //////////////////////////////////////////////////////////
@@ -414,7 +532,7 @@ class Controller extends ChangeNotifier {
     String? port = prefs.getString("port");
     String? un = prefs.getString("usern");
     String? pw = prefs.getString("pass_w");
-    debugPrint("Connecting...initDB..$db");
+    debugPrint("Connecting...initDB..$db  \nIP:$ip \n POrt: $port");
     try {
       showDialog(
         context: context,
@@ -443,15 +561,209 @@ class Controller extends ChangeNotifier {
           // username: "sa",
           // password: "1"
           );
-      getCategoryList(context);
-      getCustomerList(context, "");
+      // getCategoryList(context);
+      // getCustomerList(context, "");
       debugPrint("Connected!");
+      Navigator.pop(context);
     } catch (e) {
       debugPrint(e.toString());
-    } finally {
-      // ignore: use_build_context_synchronously
+      debugPrint("not connected..initDB..");
       Navigator.pop(context);
+      await showINITConnectionDialog(context, "INDB", e.toString());
     }
+    // finally {
+    //   // ignore: use_build_context_synchronously
+    //   Navigator.pop(context);
+    // }
+  }
+
+  Future<void> showINITConnectionDialog(
+      BuildContext context, String from, String er) {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Not Connected..!",
+                style: TextStyle(fontSize: 13),
+              ),
+              SpinKitCircle(
+                color: Colors.green,
+              ),
+            ],
+          ),
+          actions: [
+            InkWell(
+              child: Text('Connect'),
+              onLongPress: () async {
+                TextEditingController dbc = TextEditingController();
+                TextEditingController ipc = TextEditingController();
+                TextEditingController usrc = TextEditingController();
+                TextEditingController portc = TextEditingController();
+                TextEditingController pwdc = TextEditingController();
+                bool pressed = false;
+                SharedPreferences prefs = await SharedPreferences.getInstance();
+                String? db = prefs.getString("db_name");
+                String? ip = prefs.getString("ip");
+                String? port = prefs.getString("port");
+                String? un = prefs.getString("usern");
+                String? pw = prefs.getString("pass_w");
+                await showDialog(
+                    context: context,
+                    builder: (context) {
+                      return StatefulBuilder(
+                        builder: (BuildContext context,
+                                void Function(void Function()) setState) =>
+                            AlertDialog(
+                          title: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              InkWell(
+                                  onLongPress: () async {
+                                    await showDialog(
+                                        context: context,
+                                        builder: (context) {
+                                          return AlertDialog(
+                                            content: Text(er),
+                                          );
+                                        });
+                                  },
+                                  child: Icon(
+                                    Icons.error_outline,
+                                    color: Colors.redAccent,
+                                  )),
+                              IconButton(
+                                  style: ButtonStyle(),
+                                  onPressed: () {
+                                    Navigator.of(context, rootNavigator: true)
+                                        .pop(false);
+                                  },
+                                  icon: Icon(Icons.close))
+                            ],
+                          ),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('DB Deatails'),
+                              SizedBox(
+                                height: 15,
+                              ),
+                              Row(
+                                children: [
+                                  SizedBox(width: 90, child: Text("DB")),
+                                  pressed
+                                      ? SizedBox(
+                                          width: 150,
+                                          child: TextFormField(
+                                            controller: dbc,
+                                          ))
+                                      : Text(" :  ${db.toString()}")
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  SizedBox(width: 90, child: Text("IP")),
+                                  pressed
+                                      ? SizedBox(
+                                          width: 140,
+                                          child: TextFormField(
+                                            controller: ipc,
+                                          ))
+                                      : Text(" :  ${ip.toString()}")
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  SizedBox(width: 90, child: Text("PORT")),
+                                  pressed
+                                      ? SizedBox(
+                                          width: 150,
+                                          child: TextFormField(
+                                            controller: portc,
+                                          ))
+                                      : Text(" :  ${port.toString()}")
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  SizedBox(width: 90, child: Text("USERNAME")),
+                                  pressed
+                                      ? SizedBox(
+                                          width: 150,
+                                          child: TextFormField(
+                                            controller: usrc,
+                                          ))
+                                      : Text(" :  ${un.toString()}")
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  SizedBox(width: 90, child: Text("PASSWORD")),
+                                  pressed
+                                      ? SizedBox(
+                                          width: 150,
+                                          child: TextFormField(
+                                            controller: pwdc,
+                                          ))
+                                      : Text(" :  ${pw.toString()}")
+                                ],
+                              )
+                            ],
+                          ),
+                          actions: <Widget>[
+                            IconButton(
+                                onPressed: () {
+                                  setState(() {
+                                    pressed = true;
+                                  });
+
+                                  dbc.text = db.toString();
+                                  ipc.text = ip.toString();
+                                  portc.text = port.toString();
+                                  usrc.text = un.toString();
+                                  pwdc.text = pw.toString();
+                                  print("pressed---$pressed");
+                                },
+                                icon: Icon(Icons.edit)),
+                            TextButton(
+                              onPressed: () {
+                                prefs.setString(
+                                    "old_db_name", dbc.text.toString());
+                                prefs.setString("db_name", dbc.text.toString());
+                                prefs.setString("ip", ipc.text.toString());
+                                prefs.setString("port", portc.text.toString());
+                                prefs.setString("usern", usrc.text.toString());
+                                prefs.setString("pass_w", pwdc.text.toString());
+                                // setState(() {});
+                                Navigator.of(context, rootNavigator: true).pop(
+                                    false); // dismisses only the dialog and returns false
+                              },
+                              child: Text('UPDATE'),
+                            ),
+                          ],
+                        ),
+                      );
+                    });
+              },
+              onTap: () async {
+                await initDb(context, "");
+                Navigator.of(context).pop();
+              },
+            )
+            // TextButton(
+            //   onPressed: () async {
+            //     await initDb(context,"");
+            //     Navigator.of(context).pop();
+            //   },
+            //   child: Text('Connect'),
+            // ),
+          ],
+        );
+      },
+    );
   }
 
 //////////////////////////////////////////////////////////
@@ -501,47 +813,54 @@ class Controller extends ChangeNotifier {
         return list;
       }
       return [];
+    } on PlatformException catch (e) {
+      debugPrint("PlatformException Table: ${e.message}");
+      debugPrint("not connected..Table..");
+      // Navigator.pop(context);
+      await showConnectionDialog(context, "CUS", e.toString());
+      return [];
     } catch (e) {
       print("An unexpected error occurred: $e");
-      SqlConn.disconnect();
+      // SqlConn.disconnect();
       return [];
       // Handle other types of exceptions
-    } finally {
-      if (SqlConn.isConnected) {
-        debugPrint("Database connected, not popping context.");
-      } else {
-        // If not connected, pop context to dismiss the dialog
-        showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Not Connected.!",
-                    style: TextStyle(fontSize: 13),
-                  ),
-                  SpinKitCircle(
-                    color: Colors.green,
-                  )
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () async {
-                    await initYearsDb(context, "");
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('Connect'),
-                ),
-              ],
-            );
-          },
-        );
-        debugPrint("Database not connected, popping context.");
-      }
     }
+    // } finally {
+    //   if (SqlConn.isConnected) {
+    //     debugPrint("Database connected, not popping context.");
+    //   } else {
+    //     // If not connected, pop context to dismiss the dialog
+    //     showDialog(
+    //       context: context,
+    //       builder: (context) {
+    //         return AlertDialog(
+    //           title: Row(
+    //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //             children: [
+    //               Text(
+    //                 "Not Connected.!",
+    //                 style: TextStyle(fontSize: 13),
+    //               ),
+    //               SpinKitCircle(
+    //                 color: Colors.green,
+    //               )
+    //             ],
+    //           ),
+    //           actions: [
+    //             TextButton(
+    //               onPressed: () async {
+    //                 await initYearsDb(context, "");
+    //                 Navigator.of(context).pop();
+    //               },
+    //               child: Text('Connect'),
+    //             ),
+    //           ],
+    //         );
+    //       },
+    //     );
+    //     debugPrint("Database not connected, popping context.");
+    //   }
+    // }
   }
 
   /////////////////////////////////////////////////
@@ -571,51 +890,16 @@ class Controller extends ChangeNotifier {
       isLoading = false;
 
       notifyListeners();
+    } on PlatformException catch (e) {
+      debugPrint("PlatformException Cat List: ${e.message}");
+      debugPrint("not connected..Cat List..");
+      debugPrint(e.toString());
+      // Navigator.pop(context);
+      await showConnectionDialog(context, "CAT", e.toString());
     } catch (e) {
       print("An unexpected error occurred: $e");
-      SqlConn.disconnect();
+      return [];
       // Handle other types of exceptions
-    } finally {
-      if (SqlConn.isConnected) {
-        // If connected, do not pop context as it may dismiss the error dialog
-        // Navigator.pop(context);
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => MainHome()),
-        // );
-        debugPrint("Database connected, not popping context.");
-      } else {
-        // If not connected, pop context to dismiss the dialog
-        showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Not Connected.!",
-                    style: TextStyle(fontSize: 13),
-                  ),
-                  SpinKitCircle(
-                    color: Colors.green,
-                  )
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () async {
-                    await initYearsDb(context, "");
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('Connect'),
-                ),
-              ],
-            );
-          },
-        );
-        debugPrint("Database not connected, popping context.");
-      }
     }
   }
 
@@ -654,50 +938,51 @@ class Controller extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print("An unexpected error occurred: $e");
-      SqlConn.disconnect();
+      // SqlConn.disconnect();
       // Handle other types of exceptions
-    } finally {
-      if (SqlConn.isConnected) {
-        // If connected, do not pop context as it may dismiss the error dialog
-        // Navigator.pop(context);
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => MainHome()),
-        // );
-        debugPrint("Database connected, not popping context.");
-      } else {
-        // If not connected, pop context to dismiss the dialog
-        showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Not Connected.!",
-                    style: TextStyle(fontSize: 13),
-                  ),
-                  SpinKitCircle(
-                    color: Colors.green,
-                  )
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () async {
-                    await initYearsDb(context, "");
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('Connect'),
-                ),
-              ],
-            );
-          },
-        );
-        debugPrint("Database not connected, popping context.");
-      }
     }
+    // finally {
+    //   if (SqlConn.isConnected) {
+    //     // If connected, do not pop context as it may dismiss the error dialog
+    //     // Navigator.pop(context);
+    //     // Navigator.push(
+    //     //   context,
+    //     //   MaterialPageRoute(builder: (context) => MainHome()),
+    //     // );
+    //     debugPrint("Database connected, not popping context.");
+    //   } else {
+    //     // If not connected, pop context to dismiss the dialog
+    //     showDialog(
+    //       context: context,
+    //       builder: (context) {
+    //         return AlertDialog(
+    //           title: Row(
+    //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //             children: [
+    //               Text(
+    //                 "Not Connected.!",
+    //                 style: TextStyle(fontSize: 13),
+    //               ),
+    //               SpinKitCircle(
+    //                 color: Colors.green,
+    //               )
+    //             ],
+    //           ),
+    //           actions: [
+    //             TextButton(
+    //               onPressed: () async {
+    //                 await initYearsDb(context, "");
+    //                 Navigator.of(context).pop();
+    //               },
+    //               child: Text('Connect'),
+    //             ),
+    //           ],
+    //         );
+    //       },
+    //     );
+    //     debugPrint("Database not connected, popping context.");
+    //   }
+    // }
   }
 
   ///////////////////////////////////////////////////////
@@ -779,52 +1064,58 @@ class Controller extends ChangeNotifier {
       // }
 
       notifyListeners();
+    } on PlatformException catch (e) {
+      debugPrint("PlatformException Table: ${e.message}");
+      debugPrint("not connected..Table..");
+      // Navigator.pop(context);
+      await showConnectionDialog(context, "CARTNO", e.toString());
     } catch (e) {
       print("An unexpected error occurred: $e");
-      SqlConn.disconnect();
+      // SqlConn.disconnect();
       // Handle other types of exceptions
-    } finally {
-      if (SqlConn.isConnected) {
-        // If connected, do not pop context as it may dismiss the error dialog
-        // Navigator.pop(context);
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => MainHome()),
-        // );
-        debugPrint("Database connected, not popping context.");
-      } else {
-        // If not connected, pop context to dismiss the dialog
-        showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Not Connected.!",
-                    style: TextStyle(fontSize: 13),
-                  ),
-                  SpinKitCircle(
-                    color: Colors.green,
-                  )
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () async {
-                    await initYearsDb(context, "");
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('Connect'),
-                ),
-              ],
-            );
-          },
-        );
-        debugPrint("Database not connected, popping context.");
-      }
     }
+    //finally {
+    //   if (SqlConn.isConnected) {
+    //     // If connected, do not pop context as it may dismiss the error dialog
+    //     // Navigator.pop(context);
+    //     // Navigator.push(
+    //     //   context,
+    //     //   MaterialPageRoute(builder: (context) => MainHome()),
+    //     // );
+    //     debugPrint("Database connected, not popping context.");
+    //   } else {
+    //     // If not connected, pop context to dismiss the dialog
+    //     showDialog(
+    //       context: context,
+    //       builder: (context) {
+    //         return AlertDialog(
+    //           title: Row(
+    //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //             children: [
+    //               Text(
+    //                 "Not Connected.!",
+    //                 style: TextStyle(fontSize: 13),
+    //               ),
+    //               SpinKitCircle(
+    //                 color: Colors.green,
+    //               )
+    //             ],
+    //           ),
+    //           actions: [
+    //             TextButton(
+    //               onPressed: () async {
+    //                 await initYearsDb(context, "");
+    //                 Navigator.of(context).pop();
+    //               },
+    //               child: Text('Connect'),
+    //             ),
+    //           ],
+    //         );
+    //       },
+    //     );
+    //     debugPrint("Database not connected, popping context.");
+    //   }
+    // }
   }
 
   ///////////////////////////////////////////////
@@ -851,8 +1142,13 @@ class Controller extends ChangeNotifier {
       var res;
       notifyListeners();
       if (type == "from cart") {
+        print("fromCart----");
+        print(
+            "Flt_Update_Cart $cartid,'$dateTime','${map["Cart_Cust_ID"]}',0,'$os','${map["Cart_Batch"]}',$qty,${map["Cart_Rate"]},${map["Cart_Pid"]},'${map["Cart_Unit"]}','${map["Pkg"]}',$status");
+        // res = await SqlConn.readData(
+        //     "Flt_Update_Cart $cartid,'$dateTime','${map["Cart_Cust_ID"]}',c','${map["Cart_Batch"]}',$qty,${map["Cart_Rate"]},${map["Cart_Pid"]},'${map["Cart_Unit"]}','${map["Pkg"]}',$status");
         res = await SqlConn.readData(
-            "Flt_Update_Cart $cartid,'$dateTime','${map["Cart_Cust_ID"]}',c','${map["Cart_Batch"]}',$qty,${map["Cart_Rate"]},${map["Cart_Pid"]},'${map["Cart_Unit"]}','${map["Pkg"]}',$status");
+            "Flt_Update_Cart $cartid,'$dateTime','${map["Cart_Cust_ID"]}',0,'$os','${map["Cart_Batch"]}',$qty,${map["Cart_Rate"]},${map["Cart_Pid"]},'${map["Cart_Unit"]}','${map["Pkg"]}',$status");
       } else if (type == "from itempage") {
         res = await SqlConn.readData(
             "Flt_Update_Cart $cartid,'$dateTime','$customId',0,'$os','${map["code"]}',$qty,${map["Srate"]},${map["ProdId"]},'${map["Unit"]}','${map["Pkg"]}',$status");
@@ -867,50 +1163,51 @@ class Controller extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       print("An unexpected error occurred: $e");
-      SqlConn.disconnect();
+      // SqlConn.disconnect();
       // Handle other types of exceptions
-    } finally {
-      if (SqlConn.isConnected) {
-        // If connected, do not pop context as it may dismiss the error dialog
-        // Navigator.pop(context);
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => MainHome()),
-        // );
-        debugPrint("Database connected, not popping context.");
-      } else {
-        // If not connected, pop context to dismiss the dialog
-        showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Not Connected.!",
-                    style: TextStyle(fontSize: 13),
-                  ),
-                  SpinKitCircle(
-                    color: Colors.green,
-                  )
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () async {
-                    await initYearsDb(context, "");
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('Connect'),
-                ),
-              ],
-            );
-          },
-        );
-        debugPrint("Database not connected, popping context.");
-      }
     }
+    // finally {
+    //   if (SqlConn.isConnected) {
+    //     // If connected, do not pop context as it may dismiss the error dialog
+    //     // Navigator.pop(context);
+    //     // Navigator.push(
+    //     //   context,
+    //     //   MaterialPageRoute(builder: (context) => MainHome()),
+    //     // );
+    //     debugPrint("Database connected, not popping context.");
+    //   } else {
+    //     // If not connected, pop context to dismiss the dialog
+    //     showDialog(
+    //       context: context,
+    //       builder: (context) {
+    //         return AlertDialog(
+    //           title: Row(
+    //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //             children: [
+    //               Text(
+    //                 "Not Connected.!",
+    //                 style: TextStyle(fontSize: 13),
+    //               ),
+    //               SpinKitCircle(
+    //                 color: Colors.green,
+    //               )
+    //             ],
+    //           ),
+    //           actions: [
+    //             TextButton(
+    //               onPressed: () async {
+    //                 await initYearsDb(context, "");
+    //                 Navigator.of(context).pop();
+    //               },
+    //               child: Text('Connect'),
+    //             ),
+    //           ],
+    //         );
+    //       },
+    //     );
+    //     debugPrint("Database not connected, popping context.");
+    //   }
+    // }
   }
 
   ///////////////////////////////////////////////////////
@@ -935,12 +1232,14 @@ class Controller extends ChangeNotifier {
       isCartLoading = false;
       notifyListeners();
       print("view cart---$res");
-
+      cartCount=0;
       cartItems.clear();
+      notifyListeners();
       for (var item in valueMap) {
         cartItems.add(item);
       }
       cartCount = cartItems.length;
+      print("cart count----$cartCount");
       notifyListeners();
       qty = List.generate(cartItems.length, (index) => TextEditingController());
       notifyListeners();
@@ -949,54 +1248,64 @@ class Controller extends ChangeNotifier {
         qty[i].text = cartItems[i]["Cart_Qty"].toString();
         sum = sum + cartItems[i]["It_Total"];
       }
-
       notifyListeners();
+    } on PlatformException catch (e) {
+      debugPrint("PlatformException viewcart: ${e.message}");
+      debugPrint("not connected..viewcart..");
+      // Navigator.pop(context);
+      await showConnectionDialog(context, "VCART", e.toString());
     } catch (e) {
       print("An unexpected error occurred: $e");
-      SqlConn.disconnect();
-      // Handle other types of exceptions
-    } finally {
-      if (SqlConn.isConnected) {
-        // If connected, do not pop context as it may dismiss the error dialog
-        // Navigator.pop(context);
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(builder: (context) => MainHome()),
-        // );
-        debugPrint("Database connected, not popping context.");
-      } else {
-        // If not connected, pop context to dismiss the dialog
-        showDialog(
-          context: context,
-          builder: (context) {
-            return AlertDialog(
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Not Connected.!",
-                    style: TextStyle(fontSize: 13),
-                  ),
-                  SpinKitCircle(
-                    color: Colors.green,
-                  )
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () async {
-                    await initYearsDb(context, "");
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('Connect'),
-                ),
-              ],
-            );
-          },
-        );
-        debugPrint("Database not connected, popping context.");
-      }
+      // SqlConn.disconnect();
+      return [];
     }
+    // catch (e) {
+    //   print("An unexpected error occurred: $e");
+    //   SqlConn.disconnect();
+    //   // Handle other types of exceptions
+    // }
+    // finally {
+    //   if (SqlConn.isConnected) {
+    //     // If connected, do not pop context as it may dismiss the error dialog
+    //     // Navigator.pop(context);
+    //     // Navigator.push(
+    //     //   context,
+    //     //   MaterialPageRoute(builder: (context) => MainHome()),
+    //     // );
+    //     debugPrint("Database connected, not popping context.");
+    //   } else {
+    //     // If not connected, pop context to dismiss the dialog
+    //     showDialog(
+    //       context: context,
+    //       builder: (context) {
+    //         return AlertDialog(
+    //           title: Row(
+    //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //             children: [
+    //               Text(
+    //                 "Not Connected.!",
+    //                 style: TextStyle(fontSize: 13),
+    //               ),
+    //               SpinKitCircle(
+    //                 color: Colors.green,
+    //               )
+    //             ],
+    //           ),
+    //           actions: [
+    //             TextButton(
+    //               onPressed: () async {
+    //                 await initYearsDb(context, "");
+    //                 Navigator.of(context).pop();
+    //               },
+    //               child: Text('Connect'),
+    //             ),
+    //           ],
+    //         );
+    //       },
+    //     );
+    //     debugPrint("Database not connected, popping context.");
+    //   }
+    // }
   }
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -1035,19 +1344,28 @@ class Controller extends ChangeNotifier {
     notifyListeners();
   }
 
+  clearall(BuildContext context) async {
+    isfreez = false;
+    // viewCart(context, customerId.toString());
+    selected = null;
+    customerId = null;
+    await viewCart(context, customerId.toString());
+    notifyListeners();
+  }
+
   /////////////////////////////////////////////////////////////////////
   saveOrder(BuildContext context, String date, double total, int count) async {
     // try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      // String? cid = await prefs.getString("cid");
-      // String? db = prefs.getString("db_name");
-      // String? brId = await prefs.getString("br_id");
-      String? os = await prefs.getString("os");
-      int? cartid = await prefs.getInt("cartId");
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    // String? cid = await prefs.getString("cid");
+    // String? db = prefs.getString("db_name");
+    // String? brId = await prefs.getString("br_id");
+    String? os = await prefs.getString("os");
+    int? cartid = await prefs.getInt("cartId");
 
-      print("djgd----$os---$cartid---$customerId---$date---$total---$count");
-      notifyListeners();
-
+    print("djgd----$os---$cartid---$customerId---$date---$total---$count");
+    notifyListeners();
+    try {
       var res = await SqlConn.readData(
           "Flt_Sp_Save_Order  $cartid,'$date','$customerId','$os',$total,$count");
       // ignore: avoid_print
@@ -1055,65 +1373,59 @@ class Controller extends ChangeNotifier {
       var valueMap = json.decode(res);
       // String val = valueMap[0]["Orderno"];
       if (valueMap[0]["Save_Status"] == "Success") {
-        Fluttertoast.showToast(
-            msg: "Order Saved as Order No : ${valueMap[0]["Orderno"]}",
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.CENTER,
-            timeInSecForIosWeb: 2,
-            backgroundColor: Colors.green,
-            textColor: Colors.white,
-            fontSize: 18.0);
-        isfreez = false;
-        // viewCart(context, customerId.toString());
-        selected = null;
-        customerId = null;
-        viewCart(context, customerId.toString());
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage()),
-        );
+        return true;
+        // isfreez = false;
+        // // viewCart(context, customerId.toString());
+        // selected = null;
+        // customerId = null;
+        // notifyListeners();
+        // await viewCart(context, customerId.toString());
+        // showDialog(
+        //     barrierDismissible: false,
+        //     context: context,
+        //     builder: (context) {
+        //       Size size = MediaQuery.of(context).size;
+
+        //       Future.delayed(Duration(seconds: 1), () {
+        //         Navigator.of(context).pop(true);
+
+        //         Navigator.of(context).push(
+        //           PageRouteBuilder(
+        //               opaque: false, // set to false
+        //               pageBuilder: (_, __, ___) => HomePage()
+        //               // OrderForm(widget.areaname,"return"),
+        //               ),
+        //         );
+        //       });
+        //       return AlertDialog(
+        //           content: Row(
+        //         mainAxisAlignment: MainAxisAlignment.end,
+        //         children: [
+        //           Text(
+        //             "Order Saved as Order No : ${valueMap[0]["Orderno"]}",
+        //             style: TextStyle(color: Colors.green),
+        //           ),
+        //           Icon(
+        //             Icons.done,
+        //             color: Colors.green,
+        //           )
+        //         ],
+        //       ));
+        //     });
       }
       notifyListeners();
-    // } catch (e) {
-    //   print("An unexpected error occurred: $e");
-    //   SqlConn.disconnect();
-    //   // Handle other types of exceptions
-    // } finally {
-    //   if (SqlConn.isConnected) {
-    //     debugPrint("Database connected, not popping context.");
-    //   } else {
-    //     // If not connected, pop context to dismiss the dialog
-    //     showDialog(
-    //       context: context,
-    //       builder: (context) {
-    //         return AlertDialog(
-    //           title: Row(
-    //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    //             children: [
-    //               Text(
-    //                 "Not Connected.!",
-    //                 style: TextStyle(fontSize: 13),
-    //               ),
-    //               SpinKitCircle(
-    //                 color: Colors.green,
-    //               )
-    //             ],
-    //           ),
-    //           actions: [
-    //             TextButton(
-    //               onPressed: () async {
-    //                 await initYearsDb(context, "");
-    //                 Navigator.of(context).pop();
-    //               },
-    //               child: Text('Connect'),
-    //             ),
-    //           ],
-    //         );
-    //       },
-    //     );
-    //     debugPrint("Database not connected, popping context.");
-    //   }
-    // }
+    } on PlatformException catch (e) {
+      debugPrint("PlatformException SAVE: ${e.message}");
+      debugPrint("not connected..SAVE..");
+      return false;
+      // Navigator.pop(context);
+      // await showConnectionDialog(context, "SAVE", e.toString());
+    } catch (e) {
+      print("An unexpected error occurred: $e");
+      // SqlConn.disconnect();
+      // Handle other types of exceptions
+      return false;
+    }
   }
 
   /////////////////////////////////////////////////////////////////////
@@ -1218,10 +1530,8 @@ class Controller extends ChangeNotifier {
       print("An unexpected error occurred: $e");
       SqlConn.disconnect();
       // Handle other types of exceptions
-    } 
-    finally {
-      if (SqlConn.isConnected) 
-      {
+    } finally {
+      if (SqlConn.isConnected) {
         // If connected, do not pop context as it may dismiss the error dialog
         // Navigator.pop(context);
         // Navigator.push(
@@ -1229,9 +1539,7 @@ class Controller extends ChangeNotifier {
         //   MaterialPageRoute(builder: (context) => MainHome()),
         // );
         debugPrint("Database connected, not popping context.");
-      } 
-      else 
-      {
+      } else {
         // If not connected, pop context to dismiss the dialog
         showDialog(
           context: context,
@@ -1299,5 +1607,53 @@ class Controller extends ChangeNotifier {
     // String? brId = await prefs.getString("br_id");
     os = await prefs.getString("os");
     notifyListeners();
+  }
+
+  Future<void> showConnectionDialog(
+      BuildContext context, String from, String er) {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Not Connected.!",
+                style: TextStyle(fontSize: 13),
+              ),
+              SpinKitCircle(
+                color: Colors.green,
+              ),
+            ],
+          ),
+          actions: [
+            InkWell(
+              child: Text('Connect'),
+              onLongPress: () async {
+                await showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        content: Text(er),
+                      );
+                    });
+              },
+              onTap: () async {
+                await initYearsDb(context, from);
+                Navigator.of(context).pop();
+              },
+            )
+            // TextButton(
+            //   onPressed: () async {
+            //     await initYearsDb(context, from);
+            //     Navigator.of(context).pop();
+            //   },
+            //   child: Text('Connect'),
+            // ),
+          ],
+        );
+      },
+    );
   }
 }
