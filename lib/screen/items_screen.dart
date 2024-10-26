@@ -92,7 +92,7 @@ class _ProductScreenState extends State<ProductScreen> {
                           color: Colors.blue,
                         ),
                         suffixIcon: IconButton(
-                          icon: new Icon(Icons.cancel),
+                          icon: Icon(Icons.cancel),
                           onPressed: () {
                             seacrh.clear();
                             Provider.of<Controller>(context, listen: false)

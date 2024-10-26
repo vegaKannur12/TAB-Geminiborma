@@ -97,7 +97,7 @@ class _DBSelectionState extends State<DBSelection> {
                                               value.db_list[index]["Year_Name"]
                                                   .toString());
 
-                                          Provider.of<Controller>(context,
+                                         await Provider.of<Controller>(context,
                                                   listen: false)
                                               .initYearsDb(context, "");
                                               

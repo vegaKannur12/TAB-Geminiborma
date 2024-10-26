@@ -176,6 +176,8 @@ class Controller extends ChangeNotifier {
                 String? m_db = prefs.getString("multi_db");
                 // String? m_db = "1";
                 if (m_db != "1") {
+                  print("dont want year select");
+                  await initDb(context, "from login");
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -277,7 +279,8 @@ class Controller extends ChangeNotifier {
       //   MaterialPageRoute(builder: (context) => LoginPage()),
       // );
       // }
-      debugPrint("Connected selected DB!----$ip------$db");Navigator.pop(context);
+      debugPrint("Connected selected DB!----$ip------$db");
+      Navigator.pop(context);
       // getDatabasename(context, type);
       // CustomSnackbar snackbar = CustomSnackbar();
       // snackbar.showSnackbar(context, "Connected successfully..", "");
@@ -295,11 +298,14 @@ class Controller extends ChangeNotifier {
         print("vcart");
         await viewCart(context, customerId.toString());
       }
-      if (type == "CAT") {
+      if (type == "CAT") 
+      {
         await getCategoryList(context);
-      } else if (type == "INDB") {
+      } 
+      else if (type == "INDB") {
         await initDb(context, "");
-      } else if (type == "INYR") {
+      } 
+      else if (type == "INYR") {
         await initYearsDb(context, "");
       }
       // else if (type == "LOG") {
@@ -397,7 +403,6 @@ class Controller extends ChangeNotifier {
         //   );
         // }
       } else {}
-      
     } on PlatformException catch (e) {
       debugPrint(e.toString());
       debugPrint("not connected..init-YRDB..");
@@ -427,6 +432,7 @@ class Controller extends ChangeNotifier {
         db_list.add(item);
       }
     }
+    // db_list=[{"Data_Name":"GE172745", "Year_Name":"Year_2425"}, {"Data_Name":"GE172", "Year_Name":"Year1_2425"}];
     notifyListeners();
     print("years res-$res");
     print("tyyyyyyyyyp--------$type");
@@ -453,11 +459,15 @@ class Controller extends ChangeNotifier {
   //////////////////////////////////////////////////////////
   getLogin(String userName, String password, BuildContext context) async {
     try {
-      isLoginLoading = true;
-      notifyListeners();
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String? m_db = prefs.getString("multi_db");
-
+      if (m_db != "1") 
+      {
+        print("m_db----$m_db");
+        await initDb(context, "");
+      }
+      isLoginLoading = true;
+      notifyListeners();
       if (userName.toLowerCase() != "vega" ||
           password.toLowerCase() != "vega") {
         CustomSnackbar snackbar = CustomSnackbar();
@@ -911,12 +921,15 @@ class Controller extends ChangeNotifier {
     // String? brId = await prefs.getString("br_id");
     String? os = await prefs.getString("os");
     int? cartid = await prefs.getInt("cartId");
-    print("catttt iidd----$catId---$cartid----$os");
+    // print("catttt iidd----$catId---$cartid----$os");
+    print("gggg---${"Flt_Sp_ItemList '$catId','$cartid','$os'"}");
     try {
       isLoading = true;
       notifyListeners();
       var res =
           await SqlConn.readData("Flt_Sp_ItemList '$catId','$cartid','$os'");
+      print("result----$res");
+      print("result type----${res.runtimeType}");
       var valueMap = json.decode(res);
       print("item list----------$valueMap");
       itemList.clear();
@@ -925,6 +938,7 @@ class Controller extends ChangeNotifier {
           itemList.add(item);
         }
       }
+      print("item count--------${itemList.length}");
       isSearch = false;
       notifyListeners();
       qty = List.generate(itemList.length, (index) => TextEditingController());
@@ -1224,7 +1238,6 @@ class Controller extends ChangeNotifier {
     try {
       isCartLoading = true;
       notifyListeners();
-
       print("jbjhbvbv -------------$os--$cartid ---- $customerId---");
       var res = await SqlConn.readData(
           "Flt_Sp_Get_Unsaved_Cart $cartid,'$customerId','$os'");
@@ -1232,7 +1245,7 @@ class Controller extends ChangeNotifier {
       isCartLoading = false;
       notifyListeners();
       print("view cart---$res");
-      cartCount=0;
+      cartCount = 0;
       cartItems.clear();
       notifyListeners();
       for (var item in valueMap) {

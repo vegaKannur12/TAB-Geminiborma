@@ -378,13 +378,13 @@ class _CartPageState extends State<CartPage> {
                                           "from cart",
                                           0,
                                           '');
-
                                   Provider.of<Controller>(context,
                                           listen: false)
                                       .viewCart(
                                     context,
                                     value.customerId.toString(),
                                   );
+                                  
                                 },
                                 child: Icon(
                                   Icons.remove,

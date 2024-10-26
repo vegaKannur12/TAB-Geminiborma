@@ -24,6 +24,7 @@ class _OrderFormState extends State<OrderForm> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
+    var shortestSide = MediaQuery.of(context).size.shortestSide;
     Orientation ori = widget.ori;
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -35,13 +36,17 @@ class _OrderFormState extends State<OrderForm> {
             physics: const ScrollPhysics(),
             itemCount: value.categoryList.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                 crossAxisCount: ori == Orientation.portrait ? 3 : 4,
-              // childAspectRatio: 1.4,//tab,
-                 childAspectRatio: 1.5,
-                 crossAxisSpacing: 12,
-                 mainAxisSpacing: 12),
-            itemBuilder: (context, index) 
-            {
+                crossAxisCount:
+                    ori == Orientation.landscape && shortestSide > 415
+                        ? 4
+                        : ori == Orientation.portrait && shortestSide > 415
+                            ? 3
+                            : 2,
+                // childAspectRatio: 1.4,//tab,
+                childAspectRatio: 1.5,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12),
+            itemBuilder: (context, index) {
               return categoryWidget(size, index, value.categoryList[index]);
             },
           ),
@@ -51,12 +56,12 @@ class _OrderFormState extends State<OrderForm> {
   }
 
 ///////////////////////////////////////////////////////////////////////
-  Widget categoryWidget(Size size, int index, Map map) 
-  {
+  Widget categoryWidget(Size size, int index, Map map) {
     return Consumer<Controller>(
       builder: (context, value, child) => InkWell(
         onTap: () {
           if (value.customerId != null) {
+            print("catID----${map["Cat_Id"]}");
             Provider.of<Controller>(context, listen: false)
                 .getItemList(context, map["Cat_Id"]);
             Navigator.push(

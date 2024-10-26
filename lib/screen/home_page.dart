@@ -28,7 +28,7 @@ class _HomePageState extends State<HomePage> {
     date = DateFormat('dd-MMM-yyyy').format(DateTime.now());
     selectedItem = CustomerModel();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<Controller>(context, listen: false).initDb(context, "");
+      // Provider.of<Controller>(context, listen: false).initDb(context, "");
       Provider.of<Controller>(context, listen: false).getOs();
       if (Provider.of<Controller>(context, listen: false).customerId != null) {
         Provider.of<Controller>(context, listen: false).viewCart(
@@ -36,7 +36,6 @@ class _HomePageState extends State<HomePage> {
           Provider.of<Controller>(context, listen: false).customerId.toString(),
         );
       }
-
       // Provider.of<Controller>(context, listen: false).getCategoryList(context);
       // Provider.of<Controller>(context, listen: false).getCustomerList(context);
     });

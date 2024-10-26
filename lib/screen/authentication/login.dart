@@ -52,21 +52,19 @@ class _LoginPageState extends State<LoginPage> {
                         ],
                       )
                     : Column(
-                      children: [
-                         Container(
+                        children: [
+                          Container(
                             height: size.height * 0.14,
                           ),
-                        Row(
+                          Row(
                             children: [
-                              
                               Expanded(child: login_img()),
                               Expanded(
-                                flex: 1,
-                                child: login_form(size, topInsets))
+                                  flex: 1, child: login_form(size, topInsets))
                             ],
                           ),
-                      ],
-                    )),
+                        ],
+                      )),
           ),
         ),
       ),
@@ -203,6 +201,9 @@ class _LoginPageState extends State<LoginPage> {
                         // Provider.of<Controller>(context,
                         //                           listen: false)
                         //                       .initDb(context, "from login");
+
+
+                        
                         Provider.of<Controller>(context, listen: false)
                             .getLogin(username.text, password.text, context);
                       }
